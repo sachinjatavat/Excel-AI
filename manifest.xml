@@ -1,0 +1,107 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<OfficeApp xmlns="http://schemas.microsoft.com/office/appforoffice/1.1"
+           xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+           xmlns:bt="http://schemas.microsoft.com/office/officeappbasictypes/1.0"
+           xmlns:ov="http://schemas.microsoft.com/office/taskpaneappversionoverrides"
+           xsi:type="TaskPaneApp">
+
+  <!-- Unique Add-in ID -->
+  <Id>c7b2a63e-9f33-4f51-b842-83b9e4a3901b</Id>
+
+  <!-- Version information -->
+  <Version>1.0.0.0</Version>
+  <ProviderName>Local Excel AI</ProviderName>
+  <DefaultLocale>en-US</DefaultLocale>
+
+  <!-- Display Name and Description -->
+  <DisplayName DefaultValue="Local Excel AI" />
+  <Description DefaultValue="Offline AI Copilot for Teachers powered by local Ollama qwen2.5:7b" />
+
+  <!-- Icon references -->
+  <IconUrl DefaultValue="http://localhost:3000/assets/icon-32.png" />
+  <HighResolutionIconUrl DefaultValue="http://localhost:3000/assets/icon-64.png" />
+  <SupportUrl DefaultValue="http://localhost:3000" />
+
+  <!-- Permitted domains -->
+  <AppDomains>
+    <AppDomain>http://127.0.0.1:8000</AppDomain>
+    <AppDomain>http://localhost:3000</AppDomain>
+  </AppDomains>
+
+  <!-- Supported hosts -->
+  <Hosts>
+    <Host Name="Workbook" />
+  </Hosts>
+
+  <!-- Default taskpane settings -->
+  <DefaultSettings>
+    <SourceLocation DefaultValue="http://localhost:3000/taskpane.html" />
+  </DefaultSettings>
+
+  <!-- Document Read/Write permissions -->
+  <Permissions>ReadWriteDocument</Permissions>
+
+  <!-- VersionOverrides for Excel Ribbon button (Home tab) -->
+  <VersionOverrides xmlns="http://schemas.microsoft.com/office/taskpaneappversionoverrides" xsi:type="VersionOverridesV1_0">
+    <Hosts>
+      <Host xsi:type="Workbook">
+        <DesktopFormFactor>
+          <GetStarted>
+            <Title resid="GetStarted.Title"/>
+            <Description resid="GetStarted.Description"/>
+            <LearnMoreUrl resid="Taskpane.Url"/>
+          </GetStarted>
+          <FunctionFile resid="Taskpane.Url"/>
+          <ExtensionPoint xsi:type="PrimaryCommandSurface">
+            <OfficeTab id="TabHome">
+              <Group id="TeacherAIGroup">
+                <Label resid="GroupLabel"/>
+                <Icon>
+                  <bt:Image size="16" resid="Icon.16x16"/>
+                  <bt:Image size="32" resid="Icon.32x32"/>
+                  <bt:Image size="80" resid="Icon.80x80"/>
+                </Icon>
+                <Control xsi:type="Button" id="ShowTaskpaneButton">
+                  <Label resid="TaskpaneButton.Label"/>
+                  <Supertip>
+                    <Title resid="TaskpaneButton.Label"/>
+                    <Description resid="TaskpaneButton.Tooltip"/>
+                  </Supertip>
+                  <Icon>
+                    <bt:Image size="16" resid="Icon.16x16"/>
+                    <bt:Image size="32" resid="Icon.32x32"/>
+                    <bt:Image size="80" resid="Icon.80x80"/>
+                  </Icon>
+                  <Action xsi:type="ShowTaskpane">
+                    <TaskpaneId>TeacherAITaskpane</TaskpaneId>
+                    <SourceLocation resid="Taskpane.Url"/>
+                  </Action>
+                </Control>
+              </Group>
+            </OfficeTab>
+          </ExtensionPoint>
+        </DesktopFormFactor>
+      </Host>
+    </Hosts>
+
+    <Resources>
+      <bt:Images>
+        <bt:Image id="Icon.16x16" DefaultValue="http://localhost:3000/assets/icon-16.png"/>
+        <bt:Image id="Icon.32x32" DefaultValue="http://localhost:3000/assets/icon-32.png"/>
+        <bt:Image id="Icon.80x80" DefaultValue="http://localhost:3000/assets/icon-80.png"/>
+      </bt:Images>
+      <bt:Urls>
+        <bt:Url id="Taskpane.Url" DefaultValue="http://localhost:3000/taskpane.html"/>
+      </bt:Urls>
+      <bt:ShortStrings>
+        <bt:String id="GetStarted.Title" DefaultValue="Welcome to Local Excel AI"/>
+        <bt:String id="GroupLabel" DefaultValue="Teacher AI"/>
+        <bt:String id="TaskpaneButton.Label" DefaultValue="Teacher Copilot"/>
+      </bt:ShortStrings>
+      <bt:LongStrings>
+        <bt:String id="GetStarted.Description" DefaultValue="Your offline AI assistant for student grading, curving, statistics, and feedback."/>
+        <bt:String id="TaskpaneButton.Tooltip" DefaultValue="Open the 100% Offline Teacher AI Copilot sidebar"/>
+      </bt:LongStrings>
+    </Resources>
+  </VersionOverrides>
+</OfficeApp>

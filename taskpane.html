@@ -1,0 +1,697 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Teacher AI Copilot</title>
+  
+  <!-- Office.js library -->
+  <script src="https://appsforoffice.microsoft.com/lib/1/hosted/office.js"></script>
+
+  <style>
+    :root {
+      --primary: #107c41;
+      --primary-hover: #0b5a2f;
+      --primary-light: #e8f5e9;
+      --accent: #4f46e5;
+      --accent-hover: #4338ca;
+      --bg: #f8fafc;
+      --card-bg: #ffffff;
+      --text-main: #1e293b;
+      --text-muted: #64748b;
+      --border: #e2e8f0;
+      --success: #15803d;
+      --success-bg: #dcfce7;
+      --error: #b91c1c;
+      --error-bg: #fee2e2;
+      --warning: #b45309;
+      --warning-bg: #fef3c7;
+      --radius: 8px;
+      --shadow: 0 1px 3px rgba(0, 0, 0, 0.08), 0 1px 2px rgba(0, 0, 0, 0.04);
+      --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, Roboto, sans-serif;
+      background-color: var(--bg);
+      color: var(--text-main);
+      line-height: 1.45;
+      font-size: 13px;
+      padding: 14px;
+      overflow-x: hidden;
+    }
+
+    /* Header banner */
+    .header {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      background: linear-gradient(135deg, #107c41 0%, #0d6334 100%);
+      color: white;
+      padding: 14px;
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      margin-bottom: 12px;
+    }
+
+    .header-icon {
+      width: 36px;
+      height: 36px;
+      background: rgba(255, 255, 255, 0.18);
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 20px;
+      flex-shrink: 0;
+    }
+
+    .header-text {
+      flex: 1;
+    }
+
+    .header-title {
+      font-size: 15px;
+      font-weight: 700;
+      letter-spacing: -0.2px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .header-subtitle {
+      font-size: 11px;
+      opacity: 0.9;
+      margin-top: 2px;
+    }
+
+    /* Status Bar */
+    .status-bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 8px 10px;
+      margin-bottom: 12px;
+      font-size: 11px;
+    }
+
+    .pills-group {
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap;
+    }
+
+    .status-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 2px 7px;
+      border-radius: 12px;
+      font-weight: 600;
+      font-size: 10.5px;
+    }
+
+    .pill-green {
+      background: var(--success-bg);
+      color: var(--success);
+    }
+
+    .pill-red {
+      background: var(--error-bg);
+      color: var(--error);
+    }
+
+    .pill-yellow {
+      background: var(--warning-bg);
+      color: var(--warning);
+    }
+
+    .refresh-btn {
+      background: none;
+      border: none;
+      cursor: pointer;
+      color: var(--text-muted);
+      padding: 2px;
+      border-radius: 4px;
+      display: flex;
+      align-items: center;
+      transition: color 0.15s ease;
+    }
+
+    .refresh-btn:hover {
+      color: var(--text-main);
+    }
+
+    /* Section styling */
+    .section-title {
+      font-size: 11.5px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: var(--text-muted);
+      margin-bottom: 6px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    /* Quick teacher prompts */
+    .chips-container {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-bottom: 12px;
+    }
+
+    .chip {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      padding: 5px 9px;
+      border-radius: 14px;
+      font-size: 11px;
+      color: var(--text-main);
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      transition: all 0.15s ease;
+      user-select: none;
+    }
+
+    .chip:hover {
+      background: var(--primary-light);
+      border-color: var(--primary);
+      color: var(--primary);
+      transform: translateY(-1px);
+    }
+
+    /* Input Card */
+    .card {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 12px;
+      box-shadow: var(--shadow);
+      margin-bottom: 12px;
+    }
+
+    textarea {
+      width: 100%;
+      height: 90px;
+      padding: 9px 10px;
+      font-family: inherit;
+      font-size: 12.5px;
+      color: var(--text-main);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      resize: vertical;
+      outline: none;
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+
+    textarea:focus {
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px rgba(16, 124, 65, 0.15);
+    }
+
+    .input-actions {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-top: 8px;
+    }
+
+    .action-link {
+      font-size: 11px;
+      color: var(--text-muted);
+      text-decoration: none;
+      cursor: pointer;
+      background: none;
+      border: none;
+      padding: 2px 4px;
+      border-radius: 4px;
+    }
+
+    .action-link:hover {
+      color: var(--primary);
+      text-decoration: underline;
+    }
+
+    /* Buttons */
+    .btn-primary {
+      width: 100%;
+      background: var(--primary);
+      color: white;
+      border: none;
+      padding: 10px 14px;
+      font-size: 13px;
+      font-weight: 600;
+      border-radius: 6px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      box-shadow: var(--shadow);
+      transition: background 0.15s, transform 0.05s;
+    }
+
+    .btn-primary:hover:not(:disabled) {
+      background: var(--primary-hover);
+    }
+
+    .btn-primary:active:not(:disabled) {
+      transform: scale(0.99);
+    }
+
+    .btn-primary:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
+
+    .shortcut-hint {
+      text-align: center;
+      font-size: 10.5px;
+      color: var(--text-muted);
+      margin-top: 5px;
+    }
+
+    /* Status & Alerts */
+    .notification {
+      display: none;
+      border-radius: 6px;
+      padding: 9px 11px;
+      margin-top: 10px;
+      font-size: 11.5px;
+      animation: fadeIn 0.2s ease-in-out;
+    }
+
+    .notification.success {
+      background: var(--success-bg);
+      color: var(--success);
+      border: 1px solid #bbf7d0;
+    }
+
+    .notification.error {
+      background: var(--error-bg);
+      color: var(--error);
+      border: 1px solid #fecaca;
+    }
+
+    .notification.info {
+      background: #eff6ff;
+      color: #1e40af;
+      border: 1px solid #bfdbfe;
+    }
+
+    /* Spinner */
+    .spinner {
+      display: inline-block;
+      width: 14px;
+      height: 14px;
+      border: 2px solid rgba(255, 255, 255, 0.4);
+      border-radius: 50%;
+      border-top-color: #ffffff;
+      animation: spin 0.8s linear infinite;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(-3px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* Privacy Footer */
+    .privacy-footer {
+      margin-top: 18px;
+      padding-top: 10px;
+      border-top: 1px dashed var(--border);
+      text-align: center;
+      font-size: 10px;
+      color: var(--text-muted);
+      line-height: 1.4;
+    }
+
+    .privacy-tag {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      font-weight: 600;
+      color: #0f766e;
+      background: #ccfbf1;
+      padding: 2px 6px;
+      border-radius: 10px;
+      margin-bottom: 4px;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Top Header -->
+  <div class="header">
+    <div class="header-icon">📊</div>
+    <div class="header-text">
+      <div class="header-title">Teacher AI Copilot</div>
+      <div class="header-subtitle">100% Offline • Local qwen2.5:7b</div>
+    </div>
+  </div>
+
+  <!-- Live Status Bar -->
+  <div class="status-bar">
+    <div class="pills-group">
+      <span id="backendStatus" class="status-pill pill-yellow">Backend: ...</span>
+      <span id="ollamaStatus" class="status-pill pill-yellow">Ollama: ...</span>
+    </div>
+    <button class="refresh-btn" id="refreshStatusBtn" title="Check connection status">
+      🔄
+    </button>
+  </div>
+
+  <!-- Quick Teacher Prompts -->
+  <div class="section-title">
+    <span>Teacher Shortcuts</span>
+  </div>
+  <div class="chips-container">
+    <div class="chip" data-prompt="Calculate letter grades (A, B, C, D, F) in a new column based on the total score: 90+ is A, 80-89 is B, 70-79 is C, 60-69 is D, below 60 is F.">
+      🎓 Letter Grades
+    </div>
+    <div class="chip" data-prompt="Add a 5-point curve to all exam scores (ensure no score exceeds 100).">
+      📈 5-Point Curve
+    </div>
+    <div class="chip" data-prompt="Add summary rows at the bottom with Average, Highest, and Lowest for all numeric columns. Round numbers to 1 decimal place.">
+      📊 Class Stats
+    </div>
+    <div class="chip" data-prompt="Add a 'Teacher Remarks' column with encouraging, personalized feedback for each student based on their performance.">
+      💬 Student Remarks
+    </div>
+    <div class="chip" data-prompt="Calculate attendance percentage for each student in a new column based on Present and Total classes.">
+      📅 Attendance %
+    </div>
+    <div class="chip" data-prompt="Standardize all student names to Proper Title Case and clean up any extra whitespace.">
+      🔤 Clean Names
+    </div>
+  </div>
+
+  <!-- Instruction Input Card -->
+  <div class="card">
+    <div class="section-title">
+      <span>Instruction</span>
+    </div>
+    <textarea
+      id="userPrompt"
+      placeholder="e.g., Calculate letter grades for each student and add a column for comments on areas of improvement..."
+    ></textarea>
+    
+    <div class="input-actions">
+      <button class="action-link" id="loadDemoBtn" title="Insert sample student gradebook into sheet">
+        📥 Load Demo Sheet
+      </button>
+      <button class="action-link" id="clearBtn">
+        Clear
+      </button>
+    </div>
+  </div>
+
+  <!-- Execution Button -->
+  <button id="executeBtn" class="btn-primary">
+    <span id="btnIcon">✨</span>
+    <span id="btnText">Execute with AI</span>
+  </button>
+  <div class="shortcut-hint">Tip: Press Ctrl + Enter to run</div>
+
+  <!-- Notification Banner -->
+  <div id="notificationBanner" class="notification"></div>
+
+  <!-- Privacy / FERPA Footer -->
+  <div class="privacy-footer">
+    <div class="privacy-tag">🔒 100% Local &amp; Private</div>
+    <div>No student data or grades leave your computer. Completely offline and FERPA/GDPR friendly.</div>
+  </div>
+
+  <script>
+    const BACKEND_URL = "http://127.0.0.1:8000";
+    let isOfficeInitialized = false;
+
+    // Elements
+    const userPromptEl = document.getElementById("userPrompt");
+    const executeBtn = document.getElementById("executeBtn");
+    const btnIcon = document.getElementById("btnIcon");
+    const btnText = document.getElementById("btnText");
+    const clearBtn = document.getElementById("clearBtn");
+    const loadDemoBtn = document.getElementById("loadDemoBtn");
+    const refreshStatusBtn = document.getElementById("refreshStatusBtn");
+    const backendStatusEl = document.getElementById("backendStatus");
+    const ollamaStatusEl = document.getElementById("ollamaStatus");
+    const notificationBanner = document.getElementById("notificationBanner");
+
+    // Initialize Office.js
+    Office.onReady((info) => {
+      isOfficeInitialized = true;
+      console.log("Office.js initialized. Host:", info.host, "Platform:", info.platform);
+      checkHealth();
+    });
+
+    // Check backend and Ollama health
+    async function checkHealth() {
+      backendStatusEl.className = "status-pill pill-yellow";
+      backendStatusEl.textContent = "Backend: ...";
+      ollamaStatusEl.className = "status-pill pill-yellow";
+      ollamaStatusEl.textContent = "Ollama: ...";
+
+      try {
+        const res = await fetch(`${BACKEND_URL}/health`, { method: "GET" });
+        if (res.ok) {
+          const data = await res.json();
+          backendStatusEl.className = "status-pill pill-green";
+          backendStatusEl.textContent = "Backend: Online";
+
+          if (data.ollama_online) {
+            if (data.model_installed) {
+              ollamaStatusEl.className = "status-pill pill-green";
+              ollamaStatusEl.textContent = "qwen2.5:7b Ready";
+            } else {
+              ollamaStatusEl.className = "status-pill pill-yellow";
+              ollamaStatusEl.textContent = "Ollama: Pulling?";
+              showNotification(
+                "Ollama is online, but 'qwen2.5:7b' was not found. Run: ollama run qwen2.5:7b",
+                "info"
+              );
+            }
+          } else {
+            ollamaStatusEl.className = "status-pill pill-red";
+            ollamaStatusEl.textContent = "Ollama: Offline";
+          }
+        } else {
+          throw new Error("HTTP " + res.status);
+        }
+      } catch (err) {
+        backendStatusEl.className = "status-pill pill-red";
+        backendStatusEl.textContent = "Backend: Offline";
+        ollamaStatusEl.className = "status-pill pill-red";
+        ollamaStatusEl.textContent = "Ollama: Offline";
+      }
+    }
+
+    refreshStatusBtn.addEventListener("click", checkHealth);
+
+    // Quick prompt chip click handler
+    document.querySelectorAll(".chip").forEach((chip) => {
+      chip.addEventListener("click", () => {
+        const prompt = chip.getAttribute("data-prompt");
+        userPromptEl.value = prompt;
+        userPromptEl.focus();
+      });
+    });
+
+    clearBtn.addEventListener("click", () => {
+      userPromptEl.value = "";
+      hideNotification();
+      userPromptEl.focus();
+    });
+
+    // Shortcut: Ctrl + Enter
+    userPromptEl.addEventListener("keydown", (e) => {
+      if ((e.ctrlKey || e.metaKey) && e.key === "Enter") {
+        e.preventDefault();
+        executeTask();
+      }
+    });
+
+    executeBtn.addEventListener("click", executeTask);
+
+    function showNotification(message, type = "info") {
+      notificationBanner.className = `notification ${type}`;
+      notificationBanner.innerHTML = message;
+      notificationBanner.style.display = "block";
+    }
+
+    function hideNotification() {
+      notificationBanner.style.display = "none";
+      notificationBanner.textContent = "";
+    }
+
+    function setLoading(isLoading, statusMessage = "") {
+      if (isLoading) {
+        executeBtn.disabled = true;
+        btnIcon.innerHTML = `<span class="spinner"></span>`;
+        btnText.textContent = statusMessage || "AI Processing...";
+      } else {
+        executeBtn.disabled = false;
+        btnIcon.textContent = "✨";
+        btnText.textContent = "Execute with AI";
+      }
+    }
+
+    // Main execution logic using Excel.run
+    async function executeTask() {
+      const prompt = userPromptEl.value.trim();
+      if (!prompt) {
+        showNotification("Please type or select an instruction first.", "error");
+        userPromptEl.focus();
+        return;
+      }
+
+      hideNotification();
+      setLoading(true, "Reading Excel worksheet...");
+
+      const startTime = Date.now();
+
+      try {
+        await Excel.run(async (context) => {
+          const sheet = context.workbook.worksheets.getActiveWorksheet();
+          
+          // Read active used range
+          const usedRange = sheet.getUsedRangeOrNullObject();
+          usedRange.load(["values", "rowIndex", "columnIndex", "rowCount", "columnCount", "isNullObject"]);
+          await context.sync();
+
+          if (usedRange.isNullObject || !usedRange.values || usedRange.values.length === 0) {
+            throw new Error(
+              "The current sheet is empty! Click 'Load Demo Sheet' below to test with sample student data."
+            );
+          }
+
+          const originalGrid = usedRange.values;
+          const startRow = usedRange.rowIndex;
+          const startCol = usedRange.columnIndex;
+
+          setLoading(true, "Thinking with local qwen2.5:7b...");
+
+          // Call backend
+          let response;
+          try {
+            response = await fetch(`${BACKEND_URL}/execute`, {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                user_prompt: prompt,
+                grid_data: originalGrid
+              })
+            });
+          } catch (netErr) {
+            throw new Error(
+              `Cannot connect to backend server at ${BACKEND_URL}. Please verify start_assistant.bat or backend.py is running.`
+            );
+          }
+
+          if (!response.ok) {
+            const errData = await response.json().catch(() => ({}));
+            const msg = errData.detail || `Server returned error status ${response.status}`;
+            throw new Error(msg);
+          }
+
+          const result = await response.json();
+          const updatedGrid = result.updated_grid;
+
+          if (!updatedGrid || !Array.isArray(updatedGrid) || updatedGrid.length === 0) {
+            throw new Error("AI output did not contain valid table data.");
+          }
+
+          setLoading(true, "Writing cells to Excel...");
+
+          const newRows = updatedGrid.length;
+          const newCols = updatedGrid[0].length;
+
+          // Target range from the same start position with new dimensions
+          const targetRange = sheet.getRangeByIndexes(startRow, startCol, newRows, newCols);
+          targetRange.values = updatedGrid;
+          targetRange.format.autofitColumns();
+          targetRange.select();
+
+          await context.sync();
+
+          const elapsed = ((Date.now() - startTime) / 1000).toFixed(1);
+          showNotification(
+            `<strong>Success!</strong> Updated ${newRows} rows &times; ${newCols} columns in ${elapsed}s.`,
+            "success"
+          );
+        });
+      } catch (err) {
+        console.error("Execution error:", err);
+        showNotification(err.message || "An unexpected error occurred.", "error");
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    // Load Demo Gradebook
+    loadDemoBtn.addEventListener("click", async () => {
+      hideNotification();
+      try {
+        await Excel.run(async (context) => {
+          const sheet = context.workbook.worksheets.getActiveWorksheet();
+          
+          const demoData = [
+            ["Student Name", "Quiz 1 (20)", "Quiz 2 (20)", "Midterm (100)", "Final Exam (100)", "Total Score (100)"],
+            ["Emma Watson", 19, 18, 92, 95, 93.5],
+            ["Liam Johnson", 14, 16, 78, 82, 79.0],
+            ["Sophia Martinez", 20, 19, 96, 98, 97.0],
+            ["Noah Brown", 12, 11, 65, 70, 67.0],
+            ["Olivia Davis", 17, 18, 88, 85, 86.5],
+            ["Lucas Wilson", 15, 14, 72, 75, 74.0],
+            ["Ava Taylor", 18, 19, 90, 93, 91.5]
+          ];
+
+          const rowCount = demoData.length;
+          const colCount = demoData[0].length;
+
+          // Place demo table at top-left
+          const targetRange = sheet.getRangeByIndexes(0, 0, rowCount, colCount);
+          targetRange.values = demoData;
+
+          // Format header nicely
+          const headerRange = sheet.getRangeByIndexes(0, 0, 1, colCount);
+          headerRange.format.fill.color = "#107c41";
+          headerRange.format.font.color = "#ffffff";
+          headerRange.format.font.bold = true;
+          headerRange.format.font.name = "Segoe UI";
+
+          targetRange.format.autofitColumns();
+          targetRange.select();
+
+          await context.sync();
+
+          showNotification(
+            "Demo Gradebook loaded! Try clicking <strong>'Letter Grades'</strong> or <strong>'Class Stats'</strong> above.",
+            "success"
+          );
+        });
+      } catch (err) {
+        showNotification("Could not load demo data: " + err.message, "error");
+      }
+    });
+  </script>
+</body>
+</html>
