@@ -1,12 +1,14 @@
 import json
 import re
+import os
 import logging
-from typing import Any, List
+from typing import Any, List, Optional
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, Field
 import requests
 import uvicorn
+import table_engine
 
 # Configure logging
 logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(message)s")
@@ -14,8 +16,8 @@ logger = logging.getLogger("excel_ai_backend")
 
 app = FastAPI(
     title="Local Excel AI Copilot for Teachers",
-    description="100% Offline Microsoft Excel AI Assistant powered by Ollama (qwen2.5:7b)",
-    version="1.0.0",
+    description="Offline Excel Table AI Engine + Optional Cloud AI (Gemini / Groq / Ollama)",
+    version="2.0.0",
 )
 
 # Enable CORS for all origins
@@ -33,9 +35,16 @@ OLLAMA_TAGS_URL = f"{OLLAMA_BASE_URL}/api/tags"
 DEFAULT_MODEL = "qwen2.5:7b"
 
 
-def get_installed_models() -> List[str]:
+class ExecuteRequest(BaseModel):
+    user_prompt: str = Field(..., description="Teacher's natural language instruction or pasted data")
+    grid_data: Optional[List[List[Any]]] = Field(default=[], description="2D array representing Excel worksheet rows and columns")
+    api_key: Optional[str] = Field(default=None, description="Optional Google Gemini API key")
+    provider: Optional[str] = Field(default="auto", description="Execution engine: auto, builtin, gemini, or ollama")
+
+
+def get_installed_ollama_models() -> List[str]:
     try:
-        res = requests.get(OLLAMA_TAGS_URL, timeout=3)
+        res = requests.get(OLLAMA_TAGS_URL, timeout=1.5)
         if res.status_code == 200:
             return [m.get("name") for m in res.json().get("models", []) if "name" in m]
     except Exception:
@@ -43,21 +52,14 @@ def get_installed_models() -> List[str]:
     return []
 
 
-def resolve_active_model() -> str:
-    installed = get_installed_models()
+def resolve_active_ollama_model() -> str:
+    installed = get_installed_ollama_models()
     if not installed:
         return DEFAULT_MODEL
-    # Prefer qwen2.5:7b if installed
     for m in installed:
         if DEFAULT_MODEL in m or m.startswith("qwen2.5"):
             return m
-    # Otherwise use the first installed model (e.g. gemma4:12b)
     return installed[0]
-
-
-class ExecuteRequest(BaseModel):
-    user_prompt: str = Field(..., description="Teacher's natural language instruction")
-    grid_data: List[List[Any]] = Field(..., description="2D array representing Excel worksheet rows and columns")
 
 
 def extract_and_parse_json(raw_text: str) -> dict:
@@ -66,13 +68,10 @@ def extract_and_parse_json(raw_text: str) -> dict:
     from the LLM's raw response.
     """
     cleaned = raw_text.strip()
-
-    # Remove standard markdown code fences ```json ... ``` or ``` ... ```
     cleaned = re.sub(r"^```(?:json)?\s*", "", cleaned, flags=re.MULTILINE)
     cleaned = re.sub(r"\s*```$", "", cleaned, flags=re.MULTILINE)
     cleaned = cleaned.strip()
 
-    # Try direct parse first
     try:
         data = json.loads(cleaned)
         if isinstance(data, dict):
@@ -80,18 +79,15 @@ def extract_and_parse_json(raw_text: str) -> dict:
     except Exception:
         pass
 
-    # Find the outermost JSON block: from the first '{' to the last '}'
     match = re.search(r"(\{[\s\S]*\})", cleaned)
     if match:
-        json_candidate = match.group(1).strip()
         try:
-            data = json.loads(json_candidate)
+            data = json.loads(match.group(1).strip())
             if isinstance(data, dict):
                 return data
-        except Exception as e:
-            logger.warning(f"Failed regex-extracted JSON parse: {e}")
+        except Exception:
+            pass
 
-    # Fallback: Check if the model only returned a 2D array [[...]]
     array_match = re.search(r"(\[[\s\S]*\])", cleaned)
     if array_match:
         try:
@@ -101,62 +97,146 @@ def extract_and_parse_json(raw_text: str) -> dict:
         except Exception:
             pass
 
-    raise ValueError(f"Unable to parse valid JSON from LLM response. Raw output:\n{raw_text[:500]}")
+    raise ValueError(f"Unable to parse valid JSON from AI response. Raw output:\n{raw_text[:500]}")
+
+
+def call_gemini(user_prompt: str, grid_data: List[List[Any]], api_key: str) -> dict:
+    url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key={api_key}"
+    system_instruction = (
+        "You are an expert Excel AI Copilot. Your task is to update or generate a 2D Excel table "
+        "based on the user's instruction or pasted data.\n"
+        "Guidelines:\n"
+        "- Maintain rectangular table structure (all rows must have identical number of columns).\n"
+        "- Add or remove columns/rows strictly as requested.\n"
+        "- STRICT JSON RESPONSE FORMAT ONLY:\n"
+        "{\n"
+        '  "status": "success",\n'
+        '  "updated_grid": [["Col1", "Col2"], ["val1", "val2"]]\n'
+        "}\n"
+        "Do not include any markdown fences or conversational text. Output raw JSON only."
+    )
+    prompt = (
+        f"CURRENT 2D EXCEL GRID:\n{json.dumps(grid_data, ensure_ascii=False)}\n\n"
+        f"INSTRUCTION / PASTED DATA:\n{user_prompt}\n\n"
+        f"Return ONLY valid JSON with updated_grid."
+    )
+    body = {
+        "contents": [{"parts": [{"text": system_instruction + "\n\n" + prompt}]}],
+        "generationConfig": {
+            "temperature": 0.1,
+            "responseMimeType": "application/json",
+        },
+    }
+    res = requests.post(url, json=body, timeout=30)
+    if not res.ok:
+        raise Exception(f"Gemini API returned HTTP {res.status_code}: {res.text}")
+    res_data = res.json()
+    candidates = res_data.get("candidates", [])
+    if not candidates:
+        raise Exception("No response generated by Gemini API.")
+    raw_text = candidates[0]["content"]["parts"][0]["text"]
+    parsed = extract_and_parse_json(raw_text)
+    grid = table_engine.normalize_rectangular_grid(parsed.get("updated_grid", []))
+    return {
+        "status": "success",
+        "updated_grid": grid,
+        "rows_count": len(grid),
+        "columns_count": len(grid[0]) if grid else 0,
+        "message": "Processed successfully with Google Gemini AI.",
+        "engine": "Google Gemini AI (Cloud)",
+    }
+
+
+def call_ollama(user_prompt: str, grid_data: List[List[Any]]) -> dict:
+    active_model = resolve_active_ollama_model()
+    system_prompt = (
+        "You are an expert offline Excel AI Copilot and teacher's data assistant. "
+        "Your task is to update or modify an Excel 2D grid based on the teacher's instruction.\n"
+        "STRICT OUTPUT FORMAT: Respond ONLY with a valid JSON object matching this schema:\n"
+        "{\n"
+        '  "status": "success",\n'
+        '  "updated_grid": [[row1_col1, row1_col2, ...], [row2_col1, row2_col2, ...]]\n'
+        "}\n"
+        "Do NOT output markdown ticks or conversational text. Only output raw JSON."
+    )
+    prompt = (
+        f"INPUT 2D EXCEL GRID:\n"
+        f"{json.dumps(grid_data, ensure_ascii=False)}\n\n"
+        f"TEACHER'S INSTRUCTION:\n"
+        f"{user_prompt}\n\n"
+        f"Return ONLY the JSON response with the updated grid."
+    )
+    payload = {
+        "model": active_model,
+        "prompt": prompt,
+        "system": system_prompt,
+        "stream": False,
+        "options": {"temperature": 0.1, "top_p": 0.9},
+    }
+    res = requests.post(OLLAMA_GENERATE_URL, json=payload, timeout=90)
+    if not res.ok:
+        raise Exception(f"Ollama returned HTTP {res.status_code}: {res.text}")
+    raw_output = res.json().get("response", "")
+    parsed = extract_and_parse_json(raw_output)
+    grid = table_engine.normalize_rectangular_grid(parsed.get("updated_grid", []))
+    return {
+        "status": "success",
+        "updated_grid": grid,
+        "rows_count": len(grid),
+        "columns_count": len(grid[0]) if grid else 0,
+        "message": f"Processed successfully with Ollama ({active_model}).",
+        "engine": f"Local Ollama ({active_model})",
+    }
 
 
 @app.get("/")
 @app.get("/health")
 def health_check():
     """
-    Health check endpoint that inspects local Ollama connectivity
-    and identifies the active model.
+    Health check endpoint reporting readiness of the Built-in Table AI Engine,
+    Ollama (if installed), and Gemini configuration.
     """
     ollama_online = False
     available_models = []
-
     try:
-        res = requests.get(OLLAMA_TAGS_URL, timeout=3)
+        res = requests.get(OLLAMA_TAGS_URL, timeout=1.5)
         if res.status_code == 200:
             ollama_online = True
             models_data = res.json().get("models", [])
             available_models = [m.get("name") for m in models_data if "name" in m]
-    except Exception as e:
-        logger.debug(f"Ollama health check probe failed: {e}")
+    except Exception:
+        pass
 
-    active_model = resolve_active_model()
-    model_installed = len(available_models) > 0
+    env_gemini_key = bool(os.environ.get("GEMINI_API_KEY"))
 
     return {
         "status": "healthy",
         "service": "Local Excel AI Copilot Backend",
-        "ollama_url": OLLAMA_BASE_URL,
+        "builtin_engine": "Ready (100% Offline, Zero Downloads)",
         "ollama_online": ollama_online,
-        "target_model": active_model,
-        "model_installed": model_installed,
-        "installed_models": available_models,
+        "ollama_models": available_models,
+        "gemini_configured": env_gemini_key,
+        "default_engine": "Built-in Offline Engine",
     }
 
 
 @app.post("/execute")
 def execute_instruction(payload: ExecuteRequest):
     """
-    Accepts user natural language prompt and 2D grid data from Excel.
-    Sends formatted prompt to local Ollama (qwen2.5:7b).
-    Returns cleaned JSON with the updated 2D array.
+    Primary processing endpoint.
+    1. Executes immediately via the built-in 0-download Table AI Engine.
+    2. Supports optional Gemini Cloud AI if an API key is provided.
+    3. Supports local Ollama if running.
     """
     user_prompt = payload.user_prompt.strip()
-    grid_data = payload.grid_data
+    grid_data = payload.grid_data if isinstance(payload.grid_data, list) else []
+    api_key = payload.api_key or os.environ.get("GEMINI_API_KEY")
+    provider = (payload.provider or "auto").lower()
 
     if not user_prompt:
-        raise HTTPException(status_code=400, detail="The 'user_prompt' cannot be empty.")
+        raise HTTPException(status_code=400, detail="The instruction/data prompt cannot be empty.")
 
-    if not isinstance(grid_data, list) or len(grid_data) == 0:
-        raise HTTPException(
-            status_code=400,
-            detail="The 'grid_data' must be a non-empty 2D array representing Excel rows and columns.",
-        )
-
-    # Convert None/null inside grid_data to empty strings for cleaner processing
+    # Convert None/null inside grid_data to empty strings
     sanitized_grid = []
     for row in grid_data:
         if isinstance(row, list):
@@ -164,133 +244,58 @@ def execute_instruction(payload: ExecuteRequest):
         else:
             sanitized_grid.append([row])
 
-    # Construct system and user prompt for Ollama
-    system_prompt = (
-        "You are an expert offline Excel AI Copilot and teacher's data assistant. "
-        "Your task is to update or modify an Excel 2D grid based on the teacher's instruction.\n"
-        "Guidelines:\n"
-        "- Common tasks: Grade calculations (A/B/C/D/F), grade curves, statistics (Average, Median, Min, Max), "
-        "attendance rates, personalized student feedback/remarks, sorting, formatting names.\n"
-        "- Maintain rectangular integrity: every row in the output 2D grid must have the same number of columns.\n"
-        "- If adding new columns (e.g. 'Grade' or 'Remarks'), include a header in the first row and values in subsequent rows.\n"
-        "- Preserve all existing data unless specifically asked to edit or replace it.\n"
-        "- For numerical values, format cleanly (e.g., round percentages/averages to 1 or 2 decimals).\n"
-        "- STRICT OUTPUT FORMAT: Respond ONLY with a valid JSON object matching this schema:\n"
-        "{\n"
-        '  "status": "success",\n'
-        '  "updated_grid": [[row1_col1, row1_col2, ...], [row2_col1, row2_col2, ...]]\n'
-        "}\n"
-        "- Do NOT output markdown ticks (no ```json or ```). Do NOT include conversational filler, explanations, or notes. "
-        "Only output the raw JSON."
-    )
+    # 1. Explicit Gemini Cloud AI requested
+    if provider == "gemini" and api_key:
+        try:
+            return call_gemini(user_prompt, sanitized_grid, api_key)
+        except Exception as e:
+            logger.warning(f"Gemini API execution failed: {e}")
+            raise HTTPException(status_code=502, detail=f"Gemini API error: {str(e)}")
 
-    prompt = (
-        f"INPUT 2D EXCEL GRID:\n"
-        f"{json.dumps(sanitized_grid, ensure_ascii=False)}\n\n"
-        f"TEACHER'S INSTRUCTION:\n"
-        f"{user_prompt}\n\n"
-        f"Return ONLY the JSON response with the updated grid."
-    )
-
-    logger.info(f"Received instruction: {user_prompt[:80]}... for grid of {len(sanitized_grid)} rows.")
-
-    # Call Ollama API
-    active_model = resolve_active_model()
-    ollama_payload = {
-        "model": active_model,
-        "prompt": prompt,
-        "system": system_prompt,
-        "stream": False,
-        "options": {
-            "temperature": 0.1,  # Low temperature for strict adherence to structure and calculation accuracy
-            "top_p": 0.9,
-        },
-    }
-
+    # 2. Try the Built-in Specialized Table AI Engine
     try:
-        response = requests.post(
-            OLLAMA_GENERATE_URL,
-            json=ollama_payload,
-            timeout=120,  # 2 minute timeout for local model inference
-        )
-    except requests.exceptions.ConnectionError:
-        error_msg = (
-            f"Cannot connect to local Ollama at {OLLAMA_BASE_URL}. "
-            f"Please ensure Ollama is installed and running."
-        )
-        logger.error(error_msg)
-        raise HTTPException(status_code=503, detail=error_msg)
-    except requests.exceptions.Timeout:
-        error_msg = (
-            f"Ollama took longer than 120 seconds to respond. "
-            f"The sheet might be very large or your CPU/GPU is under heavy load."
-        )
-        logger.error(error_msg)
-        raise HTTPException(status_code=504, detail=error_msg)
-    except Exception as e:
-        logger.error(f"Unexpected error communicating with Ollama: {str(e)}")
-        raise HTTPException(status_code=500, detail=f"Ollama communication error: {str(e)}")
+        updated_grid, action_msg = table_engine.execute_table_instruction(sanitized_grid, user_prompt)
+        logger.info(f"Built-in table engine processed prompt: '{user_prompt[:60]}' -> {action_msg}")
+        return {
+            "status": "success",
+            "updated_grid": updated_grid,
+            "rows_count": len(updated_grid),
+            "columns_count": len(updated_grid[0]) if updated_grid else 0,
+            "message": action_msg,
+            "engine": "Built-in Table Engine (100% Offline, 0-Setup)",
+        }
+    except Exception as local_err:
+        logger.info(f"Built-in engine note: {local_err}. Checking fallback engines...")
 
-    if response.status_code != 200:
-        logger.error(f"Ollama returned HTTP {response.status_code}: {response.text}")
-        raise HTTPException(
-            status_code=502,
-            detail=f"Ollama error (HTTP {response.status_code}): {response.text[:300]}",
-        )
+        # 3. Fallback to Gemini if API key is provided
+        if api_key:
+            try:
+                return call_gemini(user_prompt, sanitized_grid, api_key)
+            except Exception as gemini_err:
+                logger.warning(f"Gemini fallback failed: {gemini_err}")
 
-    try:
-        ollama_json = response.json()
-        raw_llm_output = ollama_json.get("response", "")
-        logger.info(f"Raw response length: {len(raw_llm_output)} chars.")
-    except Exception as e:
-        raise HTTPException(
-            status_code=500, detail=f"Failed to parse response envelope from Ollama: {str(e)}"
-        )
+        # 4. Fallback to Ollama if Ollama is running
+        installed_ollama = get_installed_ollama_models()
+        if installed_ollama:
+            try:
+                return call_ollama(user_prompt, sanitized_grid)
+            except Exception as ollama_err:
+                logger.warning(f"Ollama fallback failed: {ollama_err}")
 
-    # Safely parse JSON from LLM output
-    try:
-        parsed_result = extract_and_parse_json(raw_llm_output)
-    except ValueError as ve:
-        logger.warning(f"JSON parsing error: {ve}")
-        raise HTTPException(
-            status_code=500,
-            detail=f"The AI model did not return valid JSON. Error: {str(ve)}",
-        )
-
-    # Validate updated_grid structure
-    updated_grid = parsed_result.get("updated_grid")
-    if not isinstance(updated_grid, list) or len(updated_grid) == 0:
-        raise HTTPException(
-            status_code=500,
-            detail="The AI model's output did not contain a valid 2D array in 'updated_grid'.",
-        )
-
-    # Normalize rectangular grid: Ensure every row has identical column length
-    max_cols = max(len(r) if isinstance(r, list) else 1 for r in updated_grid)
-    normalized_grid = []
-    for r in updated_grid:
-        if isinstance(r, list):
-            row_copy = list(r)
-            if len(row_copy) < max_cols:
-                row_copy.extend([""] * (max_cols - len(row_copy)))
-            normalized_grid.append(row_copy)
-        else:
-            normalized_grid.append([r] + [""] * (max_cols - 1))
-
-    logger.info(
-        f"Successfully processed grid. Returning {len(normalized_grid)} rows x {max_cols} columns."
-    )
-
-    return {
-        "status": "success",
-        "updated_grid": normalized_grid,
-        "rows_count": len(normalized_grid),
-        "columns_count": max_cols,
-    }
+        # If all failed, return clean error message
+        raise HTTPException(status_code=400, detail=str(local_err))
 
 
 if __name__ == "__main__":
-    model = resolve_active_model()
-    print(f"[*] Starting Excel AI Backend on http://127.0.0.1:8000 ...")
-    print(f"[*] Active Ollama model: {model}")
+    print("=" * 65)
+    print("      LOCAL EXCEL AI COPILOT - BACKEND SERVER")
+    print("=" * 65)
+    print(" * Built-in Table AI Engine: READY (100% Offline, No Ollama needed)")
+    ollama_models = get_installed_ollama_models()
+    if ollama_models:
+        print(f" * Local Ollama detected:    READY ({', '.join(ollama_models)})")
+    if os.environ.get("GEMINI_API_KEY"):
+        print(" * Google Gemini Cloud AI:   CONFIGURED")
+    print(" * Server URL:               http://127.0.0.1:8000")
+    print("=" * 65)
     uvicorn.run(app, host="127.0.0.1", port=8000)

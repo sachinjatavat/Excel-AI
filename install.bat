@@ -74,10 +74,9 @@ echo      %TARGET_DIR%\manifest.xml
 echo   2. Registered Add-in in Office WEF Developer and Trusted Catalogs.
 echo.
 echo How to use:
-echo   1. Start your local AI model:
-echo      ollama run gemma4:12b    (or: ollama run qwen2.5:7b)
-echo   2. Double-click "start_assistant.bat" to start servers and open Excel.
-echo   3. Inside Excel:
+echo   1. Double-click "start_assistant.bat" to start servers and open Excel.
+echo      (No Ollama download required - the built-in offline engine runs instantly!)
+echo   2. Inside Excel:
 echo      - Method 1: On the 'Home' tab, click 'Add-ins' (or 'More Add-ins')
 echo                  ^> Go to 'SHARED FOLDER' or 'MY ADD-INS'
 echo                  ^> Select 'Local Excel AI' and click 'Add'.

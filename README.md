@@ -1,17 +1,19 @@
 # 🎓 Local Excel AI Copilot for Teachers
 
-> **100% Offline, Private, and Secure AI Assistant for Microsoft Excel.**  
-> Powered by your local computer using **Ollama** and **Qwen 2.5 (7B)**.
+> **100% Offline, Private, and Zero-Setup AI Assistant for Microsoft Excel.**  
+> Powered by a dedicated **Built-in Excel Table Engine** with optional **Google Gemini / Ollama** support.
 
 ---
 
 ## 🌟 Overview
 
-The **Local Excel AI Copilot** is a taskpane add-in designed specifically for educators and teachers. It runs right inside Microsoft Excel's sidebar, reads your active spreadsheet data, takes natural language requests, and updates your gradebook and student records automatically.
+The **Local Excel AI Copilot** is a taskpane add-in designed specifically for educators and teachers. It runs right inside Microsoft Excel's sidebar, parses raw pasted data into tables, executes natural language instructions, and updates your gradebook and student records automatically.
 
+- **⚡ Zero Setup & No Ollama Required:** You do **not** need to download multi-gigabyte AI models or install external software. The built-in Excel engine runs out-of-the-box!
+- **📋 Copy-Paste to Table:** Paste any raw unstructured text (e.g., `Rahul: 85, Priya: 92, Amit: 78` or CSV/lists) and instantly turn it into a formatted Excel table.
+- **➕ Column & Row Management:** Add or remove columns on the fly (Letter Grades, Pass/Fail, Teacher Remarks, Attendance %, Rank, Totals, Averages).
 - **🔒 100% Offline & Private:** Student grades, names, and academic records **never leave your computer**. Fully compliant with student data privacy guidelines (FERPA / GDPR).
-- **⚡ Zero Cloud Fees:** No OpenAI or cloud API keys required. Everything runs locally on your PC.
-- **🍎 Built for Teachers:** Pre-configured shortcuts for letter grading, score curving, attendance percentages, class statistics, and personalized student remarks.
+- **🌐 Optional Cloud AI:** Supports Google Gemini API (free tier) for open-ended questions without downloading any local models.
 - **✨ Native Excel Design:** Polished Microsoft Fluent UI sidebar that fits seamlessly into your everyday Excel workflow.
 
 ---
@@ -19,35 +21,23 @@ The **Local Excel AI Copilot** is a taskpane add-in designed specifically for ed
 ## 📋 System Requirements
 
 1. **Operating System:** Windows 10 or Windows 11 (64-bit).
-2. **Microsoft Excel:** Excel 2016, 2019, 2021, or Microsoft 365 desktop app.
+2. **Microsoft Excel:** Excel 2016, 2019, 2021, or Microsoft 365 desktop app (also works in Excel Online).
 3. **Python:** Python 3.10 or higher ([Download from python.org](https://www.python.org/downloads/) — *make sure to check "Add python.exe to PATH"* during installation).
-4. **Ollama:** Installed from [ollama.com](https://ollama.com/).
-5. **Hardware Recommendation:** 8 GB+ RAM (16 GB recommended for smooth 7B model inference).
 
 ---
 
-## 🚀 Quick Start Guide (5 Simple Steps)
+## 🚀 Quick Start Guide (3 Simple Steps)
 
-### Step 1: Install Ollama & Pull the AI Model
-1. Download and install Ollama from [https://ollama.com](https://ollama.com).
-2. Open your terminal or Command Prompt (CMD / PowerShell) and run:
-   ```bash
-   ollama run qwen2.5:7b
-   ```
-   *This downloads the Qwen 2.5 (7B) model once. When the prompt appears (`>>>`), test it by typing `hello` and then exit with `/bye`.*
-
----
-
-### Step 2: Install Python Dependencies
+### Step 1: Install Python Dependencies
 Open Command Prompt in this project folder (`excel`) and run:
 ```bash
 pip install -r requirements.txt
 ```
-*This installs FastAPI, Uvicorn, Requests, and Pydantic.*
+*This installs FastAPI, Uvicorn, Requests, and Pydantic (takes ~10 seconds).*
 
 ---
 
-### Step 3: Run the One-Time Windows Installer
+### Step 2: Run the One-Time Windows Installer
 1. Find the file **`install.bat`** in this folder.
 2. Simply **double-click** `install.bat` (administrator privileges are not required).
 3. The script will automatically:
@@ -57,7 +47,7 @@ pip install -r requirements.txt
 
 ---
 
-### Step 4: Start the Assistant
+### Step 3: Start the Assistant
 1. Simply **double-click** the file:
    ```text
    start_assistant.bat
@@ -69,7 +59,7 @@ pip install -r requirements.txt
 
 ---
 
-### Step 5: Open the Add-in Inside Excel
+### Step 4: Open the Add-in Inside Excel
 1. In Excel, open any workbook or create a new blank workbook.
 2. If you don't see the **"Teacher Copilot"** button on the **Home** ribbon yet, insert it once:
    - **Modern Excel (Office 365 / 2024):**

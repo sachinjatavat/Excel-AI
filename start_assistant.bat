@@ -31,14 +31,6 @@ reg add "HKCU\Software\Microsoft\Office\16.0\WEF\TrustedCatalogs\{A55E12B0-8F24-
 reg add "HKCU\Software\Microsoft\Office\16.0\WEF\TrustedCatalogs\{A55E12B0-8F24-4B55-A245-123456789ABC}" /v "Url" /t REG_SZ /d "%TARGET_DIR%" /f >nul 2>&1
 reg add "HKCU\Software\Microsoft\Office\16.0\WEF\TrustedCatalogs\{A55E12B0-8F24-4B55-A245-123456789ABC}" /v "Flags" /t REG_DWORD /d 1 /f >nul 2>&1
 
-:: Check Ollama
-tasklist /fi "IMAGENAME eq ollama.exe" 2>nul | find /i "ollama.exe" >nul
-if !errorLevel! neq 0 (
-    echo [*] Starting Ollama in background...
-    start "Ollama Engine" /min ollama serve
-    timeout /t 2 /nobreak >nul
-)
-
 :: 1. Start FastAPI Backend on Port 8000
 echo [1/3] Starting AI Backend (FastAPI on http://127.0.0.1:8000)...
 start "Excel AI Backend (Port 8000)" /min python backend.py
@@ -61,9 +53,9 @@ echo ======================================================================
 echo                    SERVICES RUNNING SUCCESSFULLY
 echo ======================================================================
 echo.
+echo  * AI Engine:         Built-in Offline Table Engine (Zero Setup / No Ollama needed)
 echo  * Backend API:       http://127.0.0.1:8000
 echo  * Taskpane Web:      http://localhost:3000/taskpane.html
-echo  * LLM Engine:        Ollama (http://localhost:11434)
 echo.
 echo  ------------------------------------------------------------------
 echo  WHERE TO FIND TEACHER COPILOT IN EXCEL:
@@ -83,6 +75,8 @@ echo                                ^> 'SHARED FOLDER' tab
 echo                                ^> Click 'Local Excel AI' ^> 'Add'.
 echo.
 echo  4. The Teacher AI Copilot sidebar will open on the right of your sheet!
+echo     - Paste raw data directly into the prompt to generate a table.
+echo     - Add/remove columns, calculate grades, curves, and teacher remarks.
 echo  ------------------------------------------------------------------
 echo.
 echo  NOTE:
