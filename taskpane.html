@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Teacher AI Copilot</title>
+  <title>Local Excel AI Copilot</title>
   
   <!-- Office.js library -->
   <script src="https://appsforoffice.microsoft.com/lib/1/hosted/office.js"></script>
@@ -43,7 +43,7 @@
       color: var(--text-main);
       line-height: 1.45;
       font-size: 13px;
-      padding: 14px;
+      padding: 12px;
       overflow-x: hidden;
     }
 
@@ -54,21 +54,21 @@
       gap: 10px;
       background: linear-gradient(135deg, #107c41 0%, #0d6334 100%);
       color: white;
-      padding: 14px;
+      padding: 12px 14px;
       border-radius: var(--radius);
       box-shadow: var(--shadow);
-      margin-bottom: 12px;
+      margin-bottom: 10px;
     }
 
     .header-icon {
-      width: 36px;
-      height: 36px;
+      width: 34px;
+      height: 34px;
       background: rgba(255, 255, 255, 0.18);
       border-radius: 8px;
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 20px;
+      font-size: 19px;
       flex-shrink: 0;
     }
 
@@ -77,7 +77,7 @@
     }
 
     .header-title {
-      font-size: 15px;
+      font-size: 14.5px;
       font-weight: 700;
       letter-spacing: -0.2px;
       display: flex;
@@ -86,9 +86,9 @@
     }
 
     .header-subtitle {
-      font-size: 11px;
+      font-size: 10.5px;
       opacity: 0.9;
-      margin-top: 2px;
+      margin-top: 1px;
     }
 
     /* Status Bar */
@@ -99,14 +99,14 @@
       background: var(--card-bg);
       border: 1px solid var(--border);
       border-radius: var(--radius);
-      padding: 8px 10px;
-      margin-bottom: 12px;
+      padding: 6px 10px;
+      margin-bottom: 10px;
       font-size: 11px;
     }
 
     .pills-group {
       display: flex;
-      gap: 6px;
+      gap: 5px;
       flex-wrap: wrap;
     }
 
@@ -114,31 +114,17 @@
       display: inline-flex;
       align-items: center;
       gap: 4px;
-      padding: 2px 8px;
+      padding: 2px 7px;
       border-radius: 12px;
       font-weight: 600;
-      font-size: 10.5px;
+      font-size: 10px;
     }
 
-    .pill-green {
-      background: var(--success-bg);
-      color: var(--success);
-    }
-
-    .pill-red {
-      background: var(--error-bg);
-      color: var(--error);
-    }
-
-    .pill-yellow {
-      background: var(--warning-bg);
-      color: var(--warning);
-    }
-
-    .pill-blue {
-      background: #e0f2fe;
-      color: #0369a1;
-    }
+    .pill-green { background: var(--success-bg); color: var(--success); }
+    .pill-red { background: var(--error-bg); color: var(--error); }
+    .pill-yellow { background: var(--warning-bg); color: var(--warning); }
+    .pill-blue { background: #e0f2fe; color: #0369a1; }
+    .pill-purple { background: #f3e8ff; color: #7e22ce; }
 
     .status-actions {
       display: flex;
@@ -150,8 +136,8 @@
       background: none;
       border: none;
       cursor: pointer;
-      font-size: 13px;
-      padding: 2px 4px;
+      font-size: 12px;
+      padding: 2px 5px;
       border-radius: 4px;
       color: var(--text-muted);
     }
@@ -160,46 +146,95 @@
       color: var(--text-main);
     }
 
-    /* Settings Box (Optional Cloud API) */
-    .settings-box {
+    /* Global Undo Bar */
+    .undo-bar {
       display: none;
+      align-items: center;
+      justify-content: space-between;
+      background: #f0fdf4;
+      border: 1px solid #bbf7d0;
+      border-radius: var(--radius);
+      padding: 6px 10px;
+      margin-bottom: 10px;
+      font-size: 11px;
+      color: #166534;
+      animation: fadeIn 0.2s ease-in;
+    }
+
+    .undo-btn {
+      background: #15803d;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      padding: 3px 8px;
+      font-size: 10.5px;
+      font-weight: 600;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+    .undo-btn:hover { background: #0f5132; }
+
+    /* Navigation Tabs */
+    .tab-bar {
+      display: grid;
+      grid-template-columns: repeat(6, 1fr);
+      gap: 3px;
+      background: #e2e8f0;
+      padding: 3px;
+      border-radius: var(--radius);
+      margin-bottom: 10px;
+    }
+
+    .tab-btn {
+      background: transparent;
+      border: none;
+      border-radius: 6px;
+      padding: 6px 2px;
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--text-muted);
+      cursor: pointer;
+      text-align: center;
+      transition: all 0.15s ease;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .tab-btn:hover {
+      color: var(--text-main);
+      background: rgba(255, 255, 255, 0.5);
+    }
+
+    .tab-btn.active {
+      background: var(--card-bg);
+      color: var(--primary);
+      box-shadow: 0 1px 2px rgba(0, 0, 0, 0.08);
+    }
+
+    /* Tab Content Panes */
+    .tab-pane {
+      display: none;
+    }
+    .tab-pane.active {
+      display: block;
+      animation: fadeIn 0.15s ease-in;
+    }
+
+    /* Cards */
+    .card {
       background: var(--card-bg);
       border: 1px solid var(--border);
       border-radius: var(--radius);
-      padding: 10px;
-      margin-bottom: 12px;
-      font-size: 11.5px;
+      padding: 12px;
+      box-shadow: var(--shadow);
+      margin-bottom: 10px;
     }
 
-    .settings-box.active {
-      display: block;
-    }
-
-    .settings-box label {
-      display: block;
-      font-weight: 600;
-      margin-bottom: 4px;
-      color: var(--text-main);
-    }
-
-    .settings-input {
-      width: 100%;
-      padding: 6px 8px;
-      border: 1px solid var(--border);
-      border-radius: 6px;
-      font-size: 12px;
-      margin-bottom: 6px;
-    }
-
-    .settings-hint {
-      font-size: 10.5px;
-      color: var(--text-muted);
-      line-height: 1.35;
-    }
-
-    /* Section titles */
     .section-title {
-      font-size: 11.5px;
+      font-size: 11px;
       font-weight: 700;
       text-transform: uppercase;
       letter-spacing: 0.5px;
@@ -210,68 +245,26 @@
       justify-content: space-between;
     }
 
-    /* Quick Shortcuts Grid */
-    .chips-container {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 6px;
-      margin-bottom: 12px;
-    }
-
-    .chip {
-      background: var(--card-bg);
+    /* Form controls */
+    textarea, input[type="text"], input[type="password"], select {
+      width: 100%;
       border: 1px solid var(--border);
-      border-radius: var(--radius);
+      border-radius: 6px;
       padding: 7px 9px;
-      font-size: 11.5px;
-      font-weight: 600;
+      font-family: inherit;
+      font-size: 12px;
       color: var(--text-main);
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      gap: 6px;
-      transition: all 0.15s ease;
-      user-select: none;
-      box-shadow: 0 1px 2px rgba(0,0,0,0.03);
-    }
-
-    .chip:hover {
-      border-color: var(--primary);
-      background-color: var(--primary-light);
-      color: var(--primary);
-      transform: translateY(-1px);
-    }
-
-    .chip:active {
-      transform: translateY(0);
-    }
-
-    /* Card input container */
-    .card {
-      background: var(--card-bg);
-      border: 1px solid var(--border);
-      border-radius: var(--radius);
-      padding: 12px;
-      box-shadow: var(--shadow);
-      margin-bottom: 12px;
+      outline: none;
+      transition: border-color 0.15s ease;
     }
 
     textarea {
-      width: 100%;
-      height: 95px;
-      border: 1px solid var(--border);
-      border-radius: 6px;
-      padding: 8px 10px;
-      font-family: inherit;
-      font-size: 12.5px;
-      color: var(--text-main);
+      height: 80px;
       resize: vertical;
-      outline: none;
-      transition: border-color 0.15s ease;
       line-height: 1.4;
     }
 
-    textarea:focus {
+    textarea:focus, input:focus, select:focus {
       border-color: var(--primary);
       box-shadow: 0 0 0 2px rgba(16, 124, 65, 0.15);
     }
@@ -280,7 +273,7 @@
       display: flex;
       justify-content: space-between;
       align-items: center;
-      margin-top: 8px;
+      margin-top: 6px;
     }
 
     .action-link {
@@ -293,28 +286,41 @@
       padding: 0;
       text-decoration: underline;
     }
+    .action-link:hover { color: var(--primary-hover); }
 
-    .action-link:hover {
-      color: var(--primary-hover);
+    /* Checkbox & Options */
+    .checkbox-label {
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      font-size: 11.5px;
+      color: var(--text-main);
+      cursor: pointer;
+      user-select: none;
+      margin-bottom: 6px;
+    }
+    .checkbox-label input {
+      accent-color: var(--primary);
     }
 
-    /* Primary execution button */
+    /* Buttons */
     .btn-primary {
       width: 100%;
       background: var(--primary);
       color: white;
       border: none;
       border-radius: var(--radius);
-      padding: 11px;
-      font-size: 13.5px;
+      padding: 9px;
+      font-size: 12.5px;
       font-weight: 600;
       cursor: pointer;
       box-shadow: var(--shadow);
       display: flex;
       align-items: center;
       justify-content: center;
-      gap: 8px;
+      gap: 6px;
       transition: all 0.15s ease;
+      margin-top: 6px;
     }
 
     .btn-primary:hover:not(:disabled) {
@@ -322,89 +328,246 @@
       box-shadow: var(--shadow-md);
       transform: translateY(-1px);
     }
+    .btn-primary:disabled { opacity: 0.65; cursor: not-allowed; }
 
-    .btn-primary:disabled {
-      opacity: 0.65;
-      cursor: not-allowed;
+    .btn-secondary {
+      background: #f1f5f9;
+      color: var(--text-main);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 7px 10px;
+      font-size: 11.5px;
+      font-weight: 600;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 5px;
+    }
+    .btn-secondary:hover { background: #e2e8f0; }
+
+    .btn-danger {
+      background: var(--error);
+      color: white;
+      border: none;
+      border-radius: var(--radius);
+      padding: 7px 10px;
+      font-size: 11.5px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+    .btn-danger:hover { background: #991b1b; }
+
+    /* Quick Shortcuts Grid */
+    .chips-container {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 5px;
+      margin-bottom: 10px;
     }
 
-    .spinner {
-      width: 14px;
-      height: 14px;
-      border: 2px solid rgba(255, 255, 255, 0.4);
-      border-top-color: white;
-      border-radius: 50%;
-      animation: spin 0.8s linear infinite;
+    .chip {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 6px 8px;
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--text-main);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      transition: all 0.15s ease;
+      user-select: none;
+      box-shadow: 0 1px 2px rgba(0,0,0,0.03);
     }
-
-    @keyframes spin {
-      to { transform: rotate(360deg); }
-    }
-
-    .shortcut-hint {
-      text-align: center;
-      font-size: 10.5px;
-      color: var(--text-muted);
-      margin-top: 5px;
-      margin-bottom: 12px;
+    .chip:hover {
+      border-color: var(--primary);
+      background-color: var(--primary-light);
+      color: var(--primary);
+      transform: translateY(-1px);
     }
 
     /* Notification banner */
     .notification {
       display: none;
-      padding: 9px 12px;
+      padding: 8px 10px;
       border-radius: var(--radius);
       font-size: 11.5px;
-      margin-bottom: 12px;
+      margin-bottom: 10px;
       line-height: 1.4;
       animation: fadeIn 0.2s ease-in;
     }
+    .notification.success { background-color: var(--success-bg); color: var(--success); border: 1px solid #bbf7d0; }
+    .notification.error { background-color: var(--error-bg); color: var(--error); border: 1px solid #fecaca; }
+    .notification.info { background-color: #e0f2fe; color: #0369a1; border: 1px solid #bae6fd; }
 
+    /* Results / Audit preview box */
+    .result-box {
+      background: #f8fafc;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 9px;
+      margin-top: 8px;
+      font-size: 11.5px;
+      max-height: 190px;
+      overflow-y: auto;
+    }
+
+    .result-header {
+      font-weight: 700;
+      margin-bottom: 4px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .result-item {
+      padding: 4px 0;
+      border-bottom: 1px solid #edf2f7;
+      display: flex;
+      align-items: flex-start;
+      gap: 6px;
+    }
+    .result-item:last-child { border-bottom: none; }
+
+    .tag {
+      font-size: 9.5px;
+      font-weight: 700;
+      padding: 1px 5px;
+      border-radius: 4px;
+      text-transform: uppercase;
+      flex-shrink: 0;
+    }
+    .tag-danger { background: #fee2e2; color: #b91c1c; }
+    .tag-warning { background: #fef3c7; color: #b45309; }
+    .tag-success { background: #dcfce7; color: #15803d; }
+    .tag-info { background: #e0f2fe; color: #0369a1; }
+
+    /* Modal / Preview Drawer */
+    .modal-overlay {
+      display: none;
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(15, 23, 42, 0.45);
+      z-index: 1000;
+      backdrop-filter: blur(2px);
+      align-items: flex-end;
+      justify-content: center;
+    }
+    .modal-overlay.active {
+      display: flex;
+      animation: fadeIn 0.2s ease-out;
+    }
+
+    .modal-content {
+      background: var(--card-bg);
+      width: 100%;
+      max-height: 85vh;
+      border-radius: 12px 12px 0 0;
+      padding: 14px;
+      box-shadow: 0 -4px 12px rgba(0, 0, 0, 0.15);
+      display: flex;
+      flex-direction: column;
+      animation: slideUp 0.2s ease-out;
+    }
+
+    @keyframes slideUp {
+      from { transform: translateY(100%); }
+      to { transform: translateY(0); }
+    }
     @keyframes fadeIn {
-      from { opacity: 0; transform: translateY(-4px); }
-      to { opacity: 1; transform: translateY(0); }
+      from { opacity: 0; }
+      to { opacity: 1; }
     }
 
-    .notification.success {
-      background-color: var(--success-bg);
-      color: var(--success);
-      border: 1px solid #bbf7d0;
+    .modal-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 1px solid var(--border);
+      padding-bottom: 8px;
+      margin-bottom: 10px;
     }
-
-    .notification.error {
-      background-color: var(--error-bg);
-      color: var(--error);
-      border: 1px solid #fecaca;
+    .modal-title {
+      font-size: 13.5px;
+      font-weight: 700;
+      color: var(--text-main);
     }
-
-    .notification.info {
-      background-color: #e0f2fe;
-      color: #0369a1;
-      border: 1px solid #bae6fd;
+    .modal-body {
+      overflow-y: auto;
+      flex: 1;
+      font-size: 11.5px;
     }
-
-    /* Privacy footer */
-    .privacy-footer {
+    .modal-footer {
+      display: flex;
+      gap: 8px;
+      margin-top: 10px;
+      padding-top: 8px;
       border-top: 1px solid var(--border);
-      padding-top: 12px;
-      margin-top: 14px;
-      font-size: 10.5px;
-      color: var(--text-muted);
-      line-height: 1.4;
+    }
+
+    /* Diff Table */
+    .diff-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 11px;
+    }
+    .diff-table th {
+      background: #f1f5f9;
+      text-align: left;
+      padding: 5px 6px;
+      font-weight: 600;
+      border: 1px solid var(--border);
+    }
+    .diff-table td {
+      padding: 5px 6px;
+      border: 1px solid var(--border);
+      word-break: break-all;
+    }
+    .diff-old { background: #fee2e2; color: #991b1b; text-decoration: line-through; }
+    .diff-new { background: #dcfce7; color: #166534; font-weight: 600; }
+
+    /* Spinner */
+    .spinner {
+      width: 13px;
+      height: 13px;
+      border: 2px solid rgba(255, 255, 255, 0.4);
+      border-top-color: white;
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* KPI Grid */
+    .kpi-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 6px;
+      margin-bottom: 8px;
+    }
+    .kpi-card {
+      background: #f8fafc;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 8px;
       text-align: center;
     }
+    .kpi-label { font-size: 10px; color: var(--text-muted); font-weight: 600; text-transform: uppercase; }
+    .kpi-val { font-size: 15px; font-weight: 700; color: var(--primary); margin-top: 2px; }
 
-    .privacy-tag {
-      display: inline-flex;
-      align-items: center;
-      gap: 4px;
-      font-weight: 600;
-      color: #0f766e;
-      background: #ccfbf1;
-      padding: 2px 6px;
-      border-radius: 10px;
-      margin-bottom: 4px;
+    /* Settings Box */
+    .settings-box {
+      display: none;
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 10px;
+      margin-bottom: 10px;
+      font-size: 11.5px;
     }
+    .settings-box.active { display: block; }
   </style>
 </head>
 <body>
@@ -413,7 +576,7 @@
   <div class="header">
     <div class="header-icon">📊</div>
     <div class="header-text">
-      <div class="header-title">Teacher AI Copilot</div>
+      <div class="header-title">Excel AI Copilot</div>
       <div class="header-subtitle">Zero-Setup Table AI • 100% Offline</div>
     </div>
   </div>
@@ -422,7 +585,7 @@
   <div class="status-bar">
     <div class="pills-group">
       <span id="backendStatus" class="status-pill pill-yellow">Backend: ...</span>
-      <span id="engineStatus" class="status-pill pill-green">⚡ Engine: Ready</span>
+      <span id="engineStatus" class="status-pill pill-green">⚡ Fast &amp; Offline</span>
     </div>
     <div class="status-actions">
       <button class="icon-btn" id="toggleSettingsBtn" title="Optional AI Settings">⚙️</button>
@@ -430,92 +593,345 @@
     </div>
   </div>
 
+  <!-- Global Undo / Rollback Bar -->
+  <div id="undoBar" class="undo-bar">
+    <span id="undoLabel">1 change made</span>
+    <button id="undoBtn" class="undo-btn">↩️ Undo Change</button>
+  </div>
+
   <!-- Collapsible Settings Drawer -->
   <div id="settingsBox" class="settings-box">
-    <label for="geminiApiKey">Google Gemini API Key (Optional)</label>
-    <input
-      type="password"
-      id="geminiApiKey"
-      class="settings-input"
-      placeholder="Paste free Gemini key for cloud AI (optional)"
-    />
-    <div class="settings-hint">
-      <strong>No key required!</strong> The Built-in Offline Engine automatically handles table creation, grades, curving, remarks, and column editing locally without any API key or downloads.
+    <label style="font-weight: 600; display: block; margin-bottom: 4px;">Google Gemini API Key (Optional)</label>
+    <input type="password" id="geminiApiKey" placeholder="Paste free Gemini key for cloud AI (optional)" />
+    <div style="font-size: 10.5px; color: var(--text-muted); margin-top: 4px;">
+      <strong>Zero setup required!</strong> The dedicated Built-in Offline Engine handles cleaning, formulas, merges, dashboards, and anomalies 100% locally.
     </div>
   </div>
 
-  <!-- Quick Teacher Shortcuts -->
-  <div class="section-title">
-    <span>Teacher Shortcuts</span>
-  </div>
-  <div class="chips-container">
-    <div class="chip" data-prompt="Convert pasted text/data into a clean Excel table with formatted headers.">
-      📋 Paste to Table
-    </div>
-    <div class="chip" data-prompt="Calculate letter grades (A, B, C, D, F) in a new column based on Total Score (90+ A, 80-89 B, 70-79 C, 60-69 D, below 60 F).">
-      🎓 Letter Grades
-    </div>
-    <div class="chip" data-prompt="Add a 'Teacher Remarks' column with encouraging, personalized feedback for each student based on their score.">
-      💬 Student Remarks
-    </div>
-    <div class="chip" data-prompt="Add a 5-point curve to Midterm column, ensuring no score exceeds 100.">
-      📈 5-Point Curve
-    </div>
-    <div class="chip" data-prompt="Add summary rows at the bottom with Class Average, Highest, and Lowest scores.">
-      📊 Class Stats
-    </div>
-    <div class="chip" data-prompt="Add Result column with Pass (score >= 40) or Fail.">
-      ✅ Pass / Fail
-    </div>
-    <div class="chip" data-prompt="Add Rank column based on Total Score.">
-      🏆 Rank Students
-    </div>
-    <div class="chip" data-prompt="Remove column: Quiz 2 (20)">
-      🗑️ Remove Column
-    </div>
+  <!-- Navigation Tab Bar -->
+  <div class="tab-bar">
+    <button class="tab-btn active" data-tab="tabCopilot">💬 Copilot</button>
+    <button class="tab-btn" data-tab="tabClean">🧹 Clean</button>
+    <button class="tab-btn" data-tab="tabMerge">🔀 Merge</button>
+    <button class="tab-btn" data-tab="tabFormula">⚡ Formula</button>
+    <button class="tab-btn" data-tab="tabReport">📊 Report</button>
+    <button class="tab-btn" data-tab="tabAudit">🔍 Audit</button>
   </div>
 
-  <!-- Instruction Input Card -->
-  <div class="card">
+  <!-- ========================================================================= -->
+  <!-- TAB 1: COPILOT (Natural Language Chat & Prompts) -->
+  <!-- ========================================================================= -->
+  <div id="tabCopilot" class="tab-pane active">
+    <!-- Quick Shortcuts -->
     <div class="section-title">
-      <span>Instruction or Pasted Data</span>
+      <span>Quick Shortcuts</span>
+      <label class="checkbox-label" style="font-size: 10.5px; margin-bottom: 0;">
+        <input type="checkbox" id="alwaysPreviewToggle" checked /> Always preview
+      </label>
     </div>
-    <textarea
-      id="userPrompt"
-      placeholder="Type an instruction (e.g. 'Add letter grades', 'Remove Quiz 2') or PASTE raw text/data here to create a table..."
-    ></textarea>
-    
-    <div class="input-actions">
-      <button class="action-link" id="loadDemoBtn" title="Insert sample student gradebook into sheet">
-        📥 Load Demo Sheet
-      </button>
-      <button class="action-link" id="clearBtn">
-        Clear
-      </button>
+    <div class="chips-container">
+      <div class="chip" data-prompt="add new row">
+        ➕ Add New Row
+      </div>
+      <div class="chip" data-prompt="delete last row">
+        🗑️ Delete Last Row
+      </div>
+      <div class="chip" data-prompt="Clean this sheet, but don't delete any data without showing me first.">
+        🧹 Clean (Show First)
+      </div>
+      <div class="chip" data-prompt="Find employees whose salaries are unusually high compared with their department.">
+        🔍 Dept Outliers
+      </div>
+      <div class="chip" data-prompt="Calculate the bonus as 10% of salary if performance is above 80.">
+        ⚡ Bonus Formula
+      </div>
+      <div class="chip" data-prompt="Create a monthly sales dashboard with the top five employees.">
+        📊 Sales Dashboard
+      </div>
+      <div class="chip" data-prompt="add new column Status">
+        ➕ Add Column Status
+      </div>
+      <div class="chip" data-prompt="Give 10% salary hike to Base Salary">
+        📈 10% Salary Hike
+      </div>
+    </div>
+
+    <!-- Instruction Input Card -->
+    <div class="card">
+      <div class="section-title">
+        <span>Instruction or Pasted Data</span>
+      </div>
+      <textarea
+        id="userPrompt"
+        placeholder="Type instruction in English or Hinglish (e.g. 'add new row', 'add column Remarks', 'Clean this sheet', 'Calculate bonus as 10% if score > 80')..."
+      ></textarea>
+      
+      <div class="input-actions">
+        <button class="action-link" id="loadDemoBtn" title="Insert rich demo dataset">
+          📥 Load Demo Data
+        </button>
+        <button class="action-link" id="clearBtn">
+          Clear
+        </button>
+      </div>
+    </div>
+
+    <!-- Primary Execution Button -->
+    <button id="executeBtn" class="btn-primary">
+      <span id="btnIcon">✨</span>
+      <span id="btnText">Execute with AI</span>
+    </button>
+    <div style="text-align: center; font-size: 10px; color: var(--text-muted); margin-top: 4px;">Tip: Press Ctrl + Enter to run</div>
+  </div>
+
+  <!-- ========================================================================= -->
+  <!-- TAB 2: SMART DATA CLEANING -->
+  <!-- ========================================================================= -->
+  <div id="tabClean" class="tab-pane">
+    <div class="card">
+      <div class="section-title">
+        <span>Smart Data Cleaning</span>
+      </div>
+      <p style="font-size: 11px; color: var(--text-muted); margin-bottom: 8px;">
+        Audit and clean messy spreadsheets safely. Preview changes before altering original data.
+      </p>
+      
+      <label class="checkbox-label"><input type="checkbox" id="cleanDupes" checked /> Remove duplicate rows</label>
+      <label class="checkbox-label"><input type="checkbox" id="cleanEmpty" checked /> Remove empty rows</label>
+      <label class="checkbox-label"><input type="checkbox" id="cleanNames" checked /> Standardize names (Proper Title Case)</label>
+      <label class="checkbox-label"><input type="checkbox" id="cleanDates" checked /> Standardize dates to YYYY-MM-DD</label>
+      <label class="checkbox-label"><input type="checkbox" id="cleanPhones" checked /> Format phone numbers (XXX) XXX-XXXX</label>
+      <label class="checkbox-label"><input type="checkbox" id="cleanPlaceholders" checked /> Clean placeholders ("N/A", "null", "-")</label>
+
+      <div style="display: flex; gap: 6px; margin-top: 8px;">
+        <button id="cleanAuditBtn" class="btn-secondary" style="flex: 1;">🔍 Audit &amp; Preview</button>
+        <button id="cleanApplyBtn" class="btn-primary" style="flex: 1; margin-top: 0;">✨ Clean Sheet</button>
+      </div>
+
+      <div id="cleanResultsBox" class="result-box" style="display: none;">
+        <div class="result-header">
+          <span id="cleanSummaryTitle">Audit Findings</span>
+          <span id="cleanIssuesBadge" class="tag tag-warning">0 issues</span>
+        </div>
+        <div id="cleanResultsList"></div>
+      </div>
     </div>
   </div>
 
-  <!-- Execution Button -->
-  <button id="executeBtn" class="btn-primary">
-    <span id="btnIcon">✨</span>
-    <span id="btnText">Execute with AI</span>
-  </button>
-  <div class="shortcut-hint">Tip: Press Ctrl + Enter to run</div>
+  <!-- ========================================================================= -->
+  <!-- TAB 3: ADVANCED SHEET MERGING -->
+  <!-- ========================================================================= -->
+  <div id="tabMerge" class="tab-pane">
+    <div class="card">
+      <div class="section-title">
+        <span>Advanced Sheet Merging</span>
+      </div>
+      <p style="font-size: 11px; color: var(--text-muted); margin-bottom: 8px;">
+        Match records across sheets using Email, ID, Phone, or Name. Flags conflicts and unmatched rows.
+      </p>
+
+      <label style="font-size: 11px; font-weight: 600; display: block; margin-bottom: 3px;">Matching Key Column (Optional)</label>
+      <input type="text" id="mergeKeyCol" placeholder="Auto-detect (or e.g. Email, Employee ID)" style="margin-bottom: 8px;" />
+
+      <label style="font-size: 11px; font-weight: 600; display: block; margin-bottom: 3px;">Columns to Add / Import</label>
+      <input type="text" id="mergeColsToAdd" placeholder="e.g. Salary, Bonus (or leave blank for all)" style="margin-bottom: 8px;" />
+
+      <label style="font-size: 11px; font-weight: 600; display: block; margin-bottom: 3px;">Secondary Sheet / Pasted Table</label>
+      <textarea id="mergeSourceData" placeholder="Paste data or CSV from second sheet / workbook here..." style="height: 65px; margin-bottom: 8px;"></textarea>
+
+      <label class="checkbox-label"><input type="checkbox" id="mergeOverwriteConflicts" /> Overwrite conflicting values with Source</label>
+
+      <div style="display: flex; gap: 6px; margin-top: 4px;">
+        <button id="mergeAnalyzeBtn" class="btn-secondary" style="flex: 1;">🔍 Analyze Merge</button>
+        <button id="mergeApplyBtn" class="btn-primary" style="flex: 1; margin-top: 0;">🔀 Apply Merge</button>
+      </div>
+
+      <div id="mergeResultsBox" class="result-box" style="display: none;">
+        <div class="result-header">
+          <span>Merge Analysis</span>
+          <span id="mergeMatchBadge" class="tag tag-success">0 Matched</span>
+        </div>
+        <div id="mergeResultsList"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========================================================================= -->
+  <!-- TAB 4: FORMULA GENERATOR & FIXER -->
+  <!-- ========================================================================= -->
+  <div id="tabFormula" class="tab-pane">
+    <div class="card">
+      <div class="section-title">
+        <span>Formula Generator &amp; Fixer</span>
+      </div>
+      
+      <!-- Subtabs -->
+      <div style="display: flex; gap: 4px; margin-bottom: 8px;">
+        <button id="subFormulaGenBtn" class="btn-secondary" style="flex: 1; padding: 4px; font-size: 10.5px; background: #e2e8f0;">Generate</button>
+        <button id="subFormulaExpBtn" class="btn-secondary" style="flex: 1; padding: 4px; font-size: 10.5px;">Explain</button>
+        <button id="subFormulaFixBtn" class="btn-secondary" style="flex: 1; padding: 4px; font-size: 10.5px;">Fix Error</button>
+      </div>
+
+      <!-- Mode 1: Generate -->
+      <div id="formulaGenMode">
+        <label style="font-size: 11px; font-weight: 600; display: block; margin-bottom: 3px;">Plain English Instruction</label>
+        <textarea id="formulaPromptInput" placeholder="e.g. 'Calculate bonus as 10% of salary if performance is above 80' or 'Sum of Quiz 1 and Quiz 2'" style="height: 60px; margin-bottom: 6px;"></textarea>
+        <button id="generateFormulaBtn" class="btn-primary" style="margin-top: 0;">⚡ Generate Formula</button>
+      </div>
+
+      <!-- Mode 2: Explain -->
+      <div id="formulaExpMode" style="display: none;">
+        <label style="font-size: 11px; font-weight: 600; display: block; margin-bottom: 3px;">Excel Formula to Explain</label>
+        <input type="text" id="formulaExplainInput" placeholder="e.g. =IF(C2>80, B2*0.1, 0)" style="margin-bottom: 6px;" />
+        <button id="explainFormulaBtn" class="btn-primary" style="margin-top: 0;">📖 Explain Formula</button>
+      </div>
+
+      <!-- Mode 3: Fix Error -->
+      <div id="formulaFixMode" style="display: none;">
+        <label style="font-size: 11px; font-weight: 600; display: block; margin-bottom: 3px;">Formula Error or Cell</label>
+        <input type="text" id="formulaFixInput" placeholder="e.g. #REF!, #DIV/0!, or =A2/#DIV/0!" style="margin-bottom: 6px;" />
+        <button id="fixFormulaBtn" class="btn-primary" style="margin-top: 0;">🛠️ Diagnose &amp; Fix Error</button>
+      </div>
+
+      <!-- Formula Result Card -->
+      <div id="formulaResultCard" class="result-box" style="display: none; background: #f0fdf4; border-color: #bbf7d0;">
+        <div class="result-header">
+          <span style="color: #166534;">Formula Result</span>
+          <button id="copyFormulaBtn" class="btn-secondary" style="padding: 2px 6px; font-size: 10px;">📋 Copy</button>
+        </div>
+        <div id="formulaCode" style="font-family: monospace; font-size: 12.5px; font-weight: 700; color: #15803d; margin: 4px 0; word-break: break-all;"></div>
+        <div id="formulaExplanation" style="font-size: 11px; color: var(--text-main); margin-top: 4px; line-height: 1.4;"></div>
+        <button id="insertFormulaColBtn" class="btn-primary" style="margin-top: 8px; padding: 6px; font-size: 11px;">➕ Insert Column in Sheet</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========================================================================= -->
+  <!-- TAB 5: AUTOMATIC DASHBOARDS & REPORTS -->
+  <!-- ========================================================================= -->
+  <div id="tabReport" class="tab-pane">
+    <div class="card">
+      <div class="section-title">
+        <span>Executive Dashboard &amp; Reports</span>
+      </div>
+      <p style="font-size: 11px; color: var(--text-muted); margin-bottom: 8px;">
+        Creates a dedicated <strong>new report sheet</strong> with KPI cards, Top N rankings, and native Excel charts without touching raw data.
+      </p>
+
+      <label style="font-size: 11px; font-weight: 600; display: block; margin-bottom: 3px;">Report Focus &amp; Top N</label>
+      <input type="text" id="reportPromptInput" value="Create a monthly sales dashboard with the top five employees." style="margin-bottom: 8px;" />
+
+      <button id="generateReportBtn" class="btn-primary" style="margin-top: 0;">📊 Generate Report Sheet</button>
+
+      <!-- KPI Preview -->
+      <div id="reportKpiPreview" style="display: none; margin-top: 10px;">
+        <div class="section-title"><span>Calculated Executive KPIs</span></div>
+        <div class="kpi-grid">
+          <div class="kpi-card">
+            <div class="kpi-label" id="kpiLabel1">Total</div>
+            <div class="kpi-val" id="kpiVal1">0</div>
+          </div>
+          <div class="kpi-card">
+            <div class="kpi-label" id="kpiLabel2">Average</div>
+            <div class="kpi-val" id="kpiVal2">0</div>
+          </div>
+          <div class="kpi-card">
+            <div class="kpi-label" id="kpiLabel3">Highest</div>
+            <div class="kpi-val" id="kpiVal3">0</div>
+          </div>
+          <div class="kpi-card">
+            <div class="kpi-label" id="kpiLabel4">Records</div>
+            <div class="kpi-val" id="kpiVal4">0</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========================================================================= -->
+  <!-- TAB 6: DATA VALIDATION & ANOMALY AUDIT -->
+  <!-- ========================================================================= -->
+  <div id="tabAudit" class="tab-pane">
+    <div class="card">
+      <div class="section-title">
+        <span>Anomaly &amp; Outlier Audit</span>
+      </div>
+      <p style="font-size: 11px; color: var(--text-muted); margin-bottom: 8px;">
+        Detect department-relative outliers (e.g. unusually high salary compared to department peers), impossible dates, missing IDs, and invalid emails.
+      </p>
+
+      <label style="font-size: 11px; font-weight: 600; display: block; margin-bottom: 3px;">Audit Focus Prompt (Optional)</label>
+      <input type="text" id="auditPromptInput" value="Find employees whose salaries are unusually high compared with their department." style="margin-bottom: 8px;" />
+
+      <button id="runAuditBtn" class="btn-primary" style="margin-top: 0;">🔍 Run Anomaly Audit</button>
+
+      <div id="auditResultsBox" class="result-box" style="display: none;">
+        <div class="result-header">
+          <span>Identified Anomalies</span>
+          <span id="auditCountBadge" class="tag tag-danger">0 flagged</span>
+        </div>
+        <div id="auditResultsList"></div>
+        <button id="highlightAnomaliesBtn" class="btn-secondary" style="width: 100%; margin-top: 8px; justify-content: center;">
+          🎨 Highlight Outliers in Excel
+        </button>
+      </div>
+    </div>
+  </div>
 
   <!-- Notification Banner -->
   <div id="notificationBanner" class="notification"></div>
 
-  <!-- Privacy / FERPA Footer -->
-  <div class="privacy-footer">
-    <div class="privacy-tag">🔒 100% Private &amp; Local</div>
-    <div>Runs locally on your computer with zero external software required. Student records never leave your machine.</div>
+  <!-- ========================================================================= -->
+  <!-- INTERACTIVE LIVE PREVIEW MODAL / DRAWER -->
+  <!-- ========================================================================= -->
+  <div id="previewModal" class="modal-overlay">
+    <div class="modal-content">
+      <div class="modal-header">
+        <div class="modal-title">🔍 Preview Sheet Changes</div>
+        <button class="icon-btn" id="closeModalBtn" style="font-size: 16px;">✕</button>
+      </div>
+      <div class="modal-body">
+        <div id="previewSummary" style="font-weight: 600; margin-bottom: 8px; color: var(--primary);"></div>
+        <table class="diff-table">
+          <thead>
+            <tr>
+              <th style="width: 35px;">Cell</th>
+              <th>Header</th>
+              <th>Before</th>
+              <th>After</th>
+              <th>Reason</th>
+            </tr>
+          </thead>
+          <tbody id="diffTableBody"></tbody>
+        </table>
+      </div>
+      <div class="modal-footer">
+        <button id="cancelPreviewBtn" class="btn-secondary" style="flex: 1;">Cancel</button>
+        <button id="applyPreviewBtn" class="btn-primary" style="flex: 2; margin-top: 0;">✅ Apply to Excel</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Privacy Footer -->
+  <div style="border-top: 1px solid var(--border); padding-top: 10px; margin-top: 12px; font-size: 10.5px; color: var(--text-muted); text-align: center;">
+    <div style="display: inline-flex; align-items: center; gap: 4px; font-weight: 600; color: #0f766e; background: #ccfbf1; padding: 2px 6px; border-radius: 10px; margin-bottom: 3px;">
+      🔒 100% Private &amp; Local
+    </div>
+    <div>Runs locally on your laptop. Formulas, merges, and cleaning happen with zero external latency.</div>
   </div>
 
   <script>
     const BACKEND_URL = "http://127.0.0.1:8000";
     let isOfficeInitialized = false;
 
-    // Elements
+    // Undo / Rollback Stack
+    const historyStack = [];
+
+    // Pending preview state
+    let pendingGridUpdate = null;
+    let pendingActionDesc = "";
+
+    // DOM Elements
     const userPromptEl = document.getElementById("userPrompt");
     const executeBtn = document.getElementById("executeBtn");
     const btnIcon = document.getElementById("btnIcon");
@@ -529,8 +945,64 @@
     const backendStatusEl = document.getElementById("backendStatus");
     const engineStatusEl = document.getElementById("engineStatus");
     const notificationBanner = document.getElementById("notificationBanner");
+    const alwaysPreviewToggle = document.getElementById("alwaysPreviewToggle");
+    const undoBar = document.getElementById("undoBar");
+    const undoLabel = document.getElementById("undoLabel");
+    const undoBtn = document.getElementById("undoBtn");
 
-    // Load saved API key from localStorage
+    // Preview Modal Elements
+    const previewModal = document.getElementById("previewModal");
+    const closeModalBtn = document.getElementById("closeModalBtn");
+    const cancelPreviewBtn = document.getElementById("cancelPreviewBtn");
+    const applyPreviewBtn = document.getElementById("applyPreviewBtn");
+    const previewSummary = document.getElementById("previewSummary");
+    const diffTableBody = document.getElementById("diffTableBody");
+
+    // Tab Switching
+    document.querySelectorAll(".tab-btn").forEach(btn => {
+      btn.addEventListener("click", () => {
+        document.querySelectorAll(".tab-btn").forEach(b => b.classList.remove("active"));
+        document.querySelectorAll(".tab-pane").forEach(p => p.classList.remove("active"));
+        btn.classList.add("active");
+        const tabId = btn.getAttribute("data-tab");
+        document.getElementById(tabId).classList.add("active");
+      });
+    });
+
+    // Formula Subtab Switching
+    const subFormulaGenBtn = document.getElementById("subFormulaGenBtn");
+    const subFormulaExpBtn = document.getElementById("subFormulaExpBtn");
+    const subFormulaFixBtn = document.getElementById("subFormulaFixBtn");
+    const formulaGenMode = document.getElementById("formulaGenMode");
+    const formulaExpMode = document.getElementById("formulaExpMode");
+    const formulaFixMode = document.getElementById("formulaFixMode");
+
+    subFormulaGenBtn.addEventListener("click", () => {
+      formulaGenMode.style.display = "block";
+      formulaExpMode.style.display = "none";
+      formulaFixMode.style.display = "none";
+      subFormulaGenBtn.style.background = "#e2e8f0";
+      subFormulaExpBtn.style.background = "transparent";
+      subFormulaFixBtn.style.background = "transparent";
+    });
+    subFormulaExpBtn.addEventListener("click", () => {
+      formulaGenMode.style.display = "none";
+      formulaExpMode.style.display = "block";
+      formulaFixMode.style.display = "none";
+      subFormulaExpBtn.style.background = "#e2e8f0";
+      subFormulaGenBtn.style.background = "transparent";
+      subFormulaFixBtn.style.background = "transparent";
+    });
+    subFormulaFixBtn.addEventListener("click", () => {
+      formulaGenMode.style.display = "none";
+      formulaExpMode.style.display = "none";
+      formulaFixMode.style.display = "block";
+      subFormulaFixBtn.style.background = "#e2e8f0";
+      subFormulaGenBtn.style.background = "transparent";
+      subFormulaExpBtn.style.background = "transparent";
+    });
+
+    // Saved Gemini Key
     if (localStorage.getItem("gemini_api_key")) {
       geminiApiKeyEl.value = localStorage.getItem("gemini_api_key");
     }
@@ -543,76 +1015,39 @@
       settingsBox.classList.toggle("active");
     });
 
-    function updateEnginePill(backendData) {
+    function updateEnginePill() {
       const customKey = geminiApiKeyEl.value.trim();
       if (customKey) {
         engineStatusEl.className = "status-pill pill-blue";
         engineStatusEl.textContent = "⚡ Gemini Cloud AI";
-      } else if (backendData && backendData.ollama_online && backendData.ollama_models && backendData.ollama_models.length > 0) {
-        engineStatusEl.className = "status-pill pill-green";
-        engineStatusEl.textContent = `⚡ Ollama (${backendData.ollama_models[0]})`;
       } else {
         engineStatusEl.className = "status-pill pill-green";
-        engineStatusEl.textContent = "⚡ Built-in Engine";
+        engineStatusEl.textContent = "⚡ Fast & Offline";
       }
     }
 
-    // Initialize Office.js
+    // Office.js Init
     Office.onReady((info) => {
       isOfficeInitialized = true;
-      console.log("Office.js initialized. Host:", info.host, "Platform:", info.platform);
       checkHealth();
     });
 
-    // Check backend health
     async function checkHealth() {
       backendStatusEl.className = "status-pill pill-yellow";
       backendStatusEl.textContent = "Backend: ...";
-
       try {
         const res = await fetch(`${BACKEND_URL}/health`, { method: "GET" });
         if (res.ok) {
-          const data = await res.json();
           backendStatusEl.className = "status-pill pill-green";
           backendStatusEl.textContent = "Backend: Online";
-          updateEnginePill(data);
-        } else {
-          throw new Error("HTTP " + res.status);
-        }
+          updateEnginePill();
+        } else { throw new Error(); }
       } catch (err) {
         backendStatusEl.className = "status-pill pill-red";
         backendStatusEl.textContent = "Backend: Offline";
-        engineStatusEl.className = "status-pill pill-red";
-        engineStatusEl.textContent = "Offline";
       }
     }
-
     refreshStatusBtn.addEventListener("click", checkHealth);
-
-    // Quick prompt chip click handler
-    document.querySelectorAll(".chip").forEach((chip) => {
-      chip.addEventListener("click", () => {
-        const prompt = chip.getAttribute("data-prompt");
-        userPromptEl.value = prompt;
-        userPromptEl.focus();
-      });
-    });
-
-    clearBtn.addEventListener("click", () => {
-      userPromptEl.value = "";
-      hideNotification();
-      userPromptEl.focus();
-    });
-
-    // Shortcut: Ctrl + Enter
-    userPromptEl.addEventListener("keydown", (e) => {
-      if ((e.ctrlKey || e.metaKey) && e.key === "Enter") {
-        e.preventDefault();
-        executeTask();
-      }
-    });
-
-    executeBtn.addEventListener("click", executeTask);
 
     function showNotification(message, type = "info") {
       notificationBanner.className = `notification ${type}`;
@@ -622,14 +1057,13 @@
 
     function hideNotification() {
       notificationBanner.style.display = "none";
-      notificationBanner.textContent = "";
     }
 
-    function setLoading(isLoading, statusMessage = "") {
+    function setLoading(isLoading, text = "") {
       if (isLoading) {
         executeBtn.disabled = true;
         btnIcon.innerHTML = `<span class="spinner"></span>`;
-        btnText.textContent = statusMessage || "Processing...";
+        btnText.textContent = text || "Processing...";
       } else {
         executeBtn.disabled = false;
         btnIcon.textContent = "✨";
@@ -637,7 +1071,132 @@
       }
     }
 
-    // Main execution logic using Excel.run
+    // Push state to Undo History
+    function pushHistory(grid, startRow, startCol, description) {
+      historyStack.push({
+        grid: JSON.parse(JSON.stringify(grid)),
+        startRow,
+        startCol,
+        description: description || "Sheet modification",
+        timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+      });
+      undoLabel.textContent = `Change recorded (${historyStack.length} in history)`;
+      undoBar.style.display = "flex";
+    }
+
+    // Undo Click Handler
+    undoBtn.addEventListener("click", async () => {
+      if (historyStack.length === 0) return;
+      const lastState = historyStack.pop();
+      try {
+        await Excel.run(async (context) => {
+          const sheet = context.workbook.worksheets.getActiveWorksheet();
+          const r = lastState.grid.length;
+          const c = lastState.grid[0].length;
+          const range = sheet.getRangeByIndexes(lastState.startRow, lastState.startCol, r, c);
+          range.values = lastState.grid;
+          range.format.autofitColumns();
+          range.select();
+          await context.sync();
+          showNotification(`↩️ <strong>Rolled back:</strong> ${lastState.description} (${lastState.timestamp})`, "success");
+        });
+      } catch (err) {
+        showNotification("Undo failed: " + err.message, "error");
+      }
+      if (historyStack.length === 0) {
+        undoBar.style.display = "none";
+      } else {
+        undoLabel.textContent = `${historyStack.length} change(s) available to undo`;
+      }
+    });
+
+    // Helper: Read Active Sheet Grid Safely
+    async function readActiveGrid() {
+      return await Excel.run(async (context) => {
+        const sheet = context.workbook.worksheets.getActiveWorksheet();
+        const usedRange = sheet.getUsedRangeOrNullObject();
+        usedRange.load(["values", "rowIndex", "columnIndex", "rowCount", "columnCount", "isNullObject"]);
+        await context.sync();
+
+        let grid = [];
+        let startRow = 0;
+        let startCol = 0;
+        if (!usedRange.isNullObject && usedRange.values && usedRange.values.length > 0) {
+          const hasData = usedRange.values.some(row => row.some(cell => cell !== null && cell !== ""));
+          if (hasData) {
+            grid = usedRange.values.map(r => r.map(c => c === null ? "" : c));
+            startRow = usedRange.rowIndex;
+            startCol = usedRange.columnIndex;
+          }
+        }
+        return { grid, startRow, startCol, isNewTable: grid.length === 0 };
+      });
+    }
+
+    // Show Live Preview Modal
+    function showPreviewModal(diff, updatedGrid, actionDesc, startRow, startCol, originalGrid) {
+      pendingGridUpdate = { updatedGrid, startRow, startCol, originalGrid };
+      pendingActionDesc = actionDesc;
+
+      previewSummary.textContent = diff.summary || `${diff.total_cells_changed} cells modified`;
+      diffTableBody.innerHTML = "";
+
+      const diffs = diff.cell_diffs || [];
+      if (diffs.length === 0) {
+        diffTableBody.innerHTML = `<tr><td colspan="5" style="text-align:center; padding:10px; color:var(--text-muted);">No cell differences found.</td></tr>`;
+      } else {
+        diffs.forEach(d => {
+          const tr = document.createElement("tr");
+          tr.innerHTML = `
+            <td style="font-weight:700;">${d.cell || '-'}</td>
+            <td>${d.header || '-'}</td>
+            <td class="diff-old">${d.old_value !== undefined ? d.old_value : ''}</td>
+            <td class="diff-new">${d.new_value !== undefined ? d.new_value : ''}</td>
+            <td style="color:var(--text-muted);">${d.reason || ''}</td>
+          `;
+          diffTableBody.appendChild(tr);
+        });
+      }
+
+      previewModal.classList.add("active");
+    }
+
+    function closePreviewModal() {
+      previewModal.classList.remove("active");
+      pendingGridUpdate = null;
+    }
+
+    closeModalBtn.addEventListener("click", closePreviewModal);
+    cancelPreviewBtn.addEventListener("click", closePreviewModal);
+
+    // Apply Preview Changes to Excel
+    applyPreviewBtn.addEventListener("click", async () => {
+      if (!pendingGridUpdate) return;
+      const { updatedGrid, startRow, startCol, originalGrid } = pendingGridUpdate;
+      closePreviewModal();
+      
+      try {
+        await Excel.run(async (context) => {
+          const sheet = context.workbook.worksheets.getActiveWorksheet();
+          pushHistory(originalGrid, startRow, startCol, pendingActionDesc);
+
+          const r = updatedGrid.length;
+          const c = updatedGrid[0].length;
+          const range = sheet.getRangeByIndexes(startRow, startCol, r, c);
+          range.values = updatedGrid;
+          range.format.autofitColumns();
+          range.select();
+          await context.sync();
+          showNotification(`<strong>Applied!</strong> ${pendingActionDesc}`, "success");
+        });
+      } catch (err) {
+        showNotification("Failed to write to sheet: " + err.message, "error");
+      }
+    });
+
+    // =========================================================================
+    // FEATURE 1 & PRIMARY PROMPT EXECUTION
+    // =========================================================================
     async function executeTask() {
       const prompt = userPromptEl.value.trim();
       if (!prompt) {
@@ -648,110 +1207,594 @@
 
       hideNotification();
       setLoading(true, "Inspecting worksheet...");
-
-      const startTime = Date.now();
       const apiKey = geminiApiKeyEl.value.trim();
+      const alwaysPreview = alwaysPreviewToggle.checked;
 
       try {
+        const { grid, startRow, startCol, isNewTable } = await readActiveGrid();
+        setLoading(true, "AI processing...");
+
+        const response = await fetch(`${BACKEND_URL}/execute`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            user_prompt: prompt,
+            grid_data: grid,
+            api_key: apiKey || null,
+            provider: apiKey ? "gemini" : "auto",
+            preview_only: alwaysPreview
+          })
+        });
+
+        if (!response.ok) {
+          const errData = await response.json().catch(() => ({}));
+          throw new Error(errData.detail || `Server returned error status ${response.status}`);
+        }
+
+        const result = await response.json();
+
+        // 1. Check if New Report Sheet requested (Feature 4)
+        if (result.is_new_sheet && result.dashboard_report) {
+          await createDashboardSheet(result.dashboard_report);
+          setLoading(false);
+          return;
+        }
+
+        // 2. Check if Preview is required (Feature 1 or 6)
+        if (result.preview_required && result.diff) {
+          setLoading(false);
+          showPreviewModal(
+            result.diff,
+            result.updated_grid,
+            result.message,
+            startRow,
+            startCol,
+            grid
+          );
+          return;
+        }
+
+        // 3. Otherwise write directly to Excel
+        setLoading(true, "Writing to Excel...");
         await Excel.run(async (context) => {
           const sheet = context.workbook.worksheets.getActiveWorksheet();
-          
-          // Read active used range safely
-          const usedRange = sheet.getUsedRangeOrNullObject();
-          usedRange.load(["values", "rowIndex", "columnIndex", "rowCount", "columnCount", "isNullObject"]);
-          await context.sync();
+          pushHistory(grid, startRow, startCol, result.message);
 
-          let originalGrid = [];
-          let startRow = 0;
-          let startCol = 0;
-          let isNewTable = true;
-
-          if (!usedRange.isNullObject && usedRange.values && usedRange.values.length > 0) {
-            // Check if sheet actually has content
-            const hasCells = usedRange.values.some(row => row.some(c => c !== null && c !== ""));
-            if (hasCells) {
-              originalGrid = usedRange.values;
-              startRow = usedRange.rowIndex;
-              startCol = usedRange.columnIndex;
-              isNewTable = false;
-            }
-          }
-
-          setLoading(true, "AI processing...");
-
-          // Call backend
-          let response;
-          try {
-            response = await fetch(`${BACKEND_URL}/execute`, {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({
-                user_prompt: prompt,
-                grid_data: originalGrid,
-                api_key: apiKey || null,
-                provider: apiKey ? "gemini" : "auto"
-              })
-            });
-          } catch (netErr) {
-            throw new Error(
-              `Cannot connect to backend server at ${BACKEND_URL}. Please double-click start_assistant.bat to run.`
-            );
-          }
-
-          if (!response.ok) {
-            const errData = await response.json().catch(() => ({}));
-            const msg = errData.detail || `Server returned error status ${response.status}`;
-            throw new Error(msg);
-          }
-
-          const result = await response.json();
-          const updatedGrid = result.updated_grid;
-
-          if (!updatedGrid || !Array.isArray(updatedGrid) || updatedGrid.length === 0) {
-            throw new Error("Engine did not return valid table data.");
-          }
-
-          setLoading(true, "Writing to Excel...");
-
-          const newRows = updatedGrid.length;
-          const newCols = updatedGrid[0].length;
-
-          // Target range starting at start position with updated dimensions
+          const newRows = result.updated_grid.length;
+          const newCols = result.updated_grid[0].length;
           const targetRange = sheet.getRangeByIndexes(startRow, startCol, newRows, newCols);
-          targetRange.values = updatedGrid;
+          targetRange.values = result.updated_grid;
 
-          // If creating a brand new table, apply header styling
           if (isNewTable && newRows > 1) {
             const headerRange = sheet.getRangeByIndexes(startRow, startCol, 1, newCols);
             headerRange.format.fill.color = "#107c41";
             headerRange.format.font.color = "#ffffff";
             headerRange.format.font.bold = true;
-            headerRange.format.font.name = "Segoe UI";
           }
 
           targetRange.format.autofitColumns();
           targetRange.select();
-
           await context.sync();
 
-          const elapsed = ((Date.now() - startTime) / 1000).toFixed(1);
-          const actionMsg = result.message || `Updated ${newRows} rows &times; ${newCols} columns`;
-          const engineName = result.engine || "Built-in Engine";
-
           showNotification(
-            `<strong>Success!</strong> ${actionMsg}<br><small style="opacity:0.85;">(${engineName} • ${elapsed}s)</small>`,
+            `<strong>Success!</strong> ${result.message}<br><small>(${result.engine})</small>`,
             "success"
           );
         });
       } catch (err) {
-        console.error("Execution error:", err);
         showNotification(err.message || "An unexpected error occurred.", "error");
       } finally {
         setLoading(false);
       }
     }
 
-    // Load Demo Gradebook
+    executeBtn.addEventListener("click", executeTask);
+    userPromptEl.addEventListener("keydown", (e) => {
+      if ((e.ctrlKey || e.metaKey) && e.key === "Enter") {
+        e.preventDefault();
+        executeTask();
+      }
+    });
+
+    // Quick chip click
+    document.querySelectorAll(".chip").forEach((chip) => {
+      chip.addEventListener("click", () => {
+        userPromptEl.value = chip.getAttribute("data-prompt");
+        userPromptEl.focus();
+      });
+    });
+
+    clearBtn.addEventListener("click", () => {
+      userPromptEl.value = "";
+      hideNotification();
+      userPromptEl.focus();
+    });
+
+    // =========================================================================
+    // FEATURE 1: SMART DATA CLEANING (AUDIT & APPLY)
+    // =========================================================================
+    const cleanAuditBtn = document.getElementById("cleanAuditBtn");
+    const cleanApplyBtn = document.getElementById("cleanApplyBtn");
+    const cleanResultsBox = document.getElementById("cleanResultsBox");
+    const cleanResultsList = document.getElementById("cleanResultsList");
+    const cleanIssuesBadge = document.getElementById("cleanIssuesBadge");
+
+    cleanAuditBtn.addEventListener("click", async () => {
+      try {
+        const { grid } = await readActiveGrid();
+        if (grid.length === 0) throw new Error("Please open or paste table data in the worksheet first.");
+        
+        const res = await fetch(`${BACKEND_URL}/clean/audit`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            grid_data: grid,
+            remove_duplicates: document.getElementById("cleanDupes").checked,
+            remove_empty: document.getElementById("cleanEmpty").checked,
+            standardize_names: document.getElementById("cleanNames").checked,
+            standardize_dates: document.getElementById("cleanDates").checked,
+            standardize_phones: document.getElementById("cleanPhones").checked,
+            clean_placeholders: document.getElementById("cleanPlaceholders").checked,
+          })
+        });
+        const data = await res.json();
+        const report = data.report;
+        
+        cleanIssuesBadge.textContent = `${report.total_issues_found} issues`;
+        cleanIssuesBadge.className = report.total_issues_found > 0 ? "tag tag-warning" : "tag tag-success";
+        
+        cleanResultsList.innerHTML = "";
+        if (report.changes && report.changes.length > 0) {
+          report.changes.slice(0, 15).forEach(c => {
+            const item = document.createElement("div");
+            item.className = "result-item";
+            item.innerHTML = `
+              <span class="tag tag-info">${c.type || 'clean'}</span>
+              <div><strong>Row ${c.row}</strong>: ${c.reason} <span style="color:var(--text-muted);">(${c.old} &rarr; ${c.new})</span></div>
+            `;
+            cleanResultsList.appendChild(item);
+          });
+        } else {
+          cleanResultsList.innerHTML = `<div style="padding:6px; color:#15803d;">Sheet is 100% clean! No issues found.</div>`;
+        }
+        cleanResultsBox.style.display = "block";
+      } catch (err) {
+        showNotification(err.message, "error");
+      }
+    });
+
+    cleanApplyBtn.addEventListener("click", async () => {
+      try {
+        const { grid, startRow, startCol } = await readActiveGrid();
+        if (grid.length === 0) throw new Error("Please open or paste table data in the worksheet first.");
+        
+        const res = await fetch(`${BACKEND_URL}/clean/apply`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            grid_data: grid,
+            remove_duplicates: document.getElementById("cleanDupes").checked,
+            remove_empty: document.getElementById("cleanEmpty").checked,
+            standardize_names: document.getElementById("cleanNames").checked,
+            standardize_dates: document.getElementById("cleanDates").checked,
+            standardize_phones: document.getElementById("cleanPhones").checked,
+            clean_placeholders: document.getElementById("cleanPlaceholders").checked,
+          })
+        });
+        const data = await res.json();
+
+        await Excel.run(async (context) => {
+          const sheet = context.workbook.worksheets.getActiveWorksheet();
+          pushHistory(grid, startRow, startCol, data.message);
+
+          const r = data.updated_grid.length;
+          const c = data.updated_grid[0].length;
+          const targetRange = sheet.getRangeByIndexes(startRow, startCol, r, c);
+          targetRange.values = data.updated_grid;
+          targetRange.format.autofitColumns();
+          await context.sync();
+          showNotification(`<strong>Cleaned!</strong> ${data.message}`, "success");
+        });
+      } catch (err) {
+        showNotification(err.message, "error");
+      }
+    });
+
+    // =========================================================================
+    // FEATURE 2: ADVANCED SHEET MERGING
+    // =========================================================================
+    const mergeAnalyzeBtn = document.getElementById("mergeAnalyzeBtn");
+    const mergeApplyBtn = document.getElementById("mergeApplyBtn");
+    const mergeSourceData = document.getElementById("mergeSourceData");
+    const mergeKeyCol = document.getElementById("mergeKeyCol");
+    const mergeColsToAdd = document.getElementById("mergeColsToAdd");
+    const mergeResultsBox = document.getElementById("mergeResultsBox");
+    const mergeResultsList = document.getElementById("mergeResultsList");
+    const mergeMatchBadge = document.getElementById("mergeMatchBadge");
+
+    function parseRawPastedGrid(raw) {
+      const lines = raw.trim().split(/\r?\n/).filter(l => l.trim().length > 0);
+      return lines.map(line => {
+        if (line.includes("\t")) return line.split("\t").map(c => c.trim());
+        if (line.includes(",")) return line.split(",").map(c => c.trim());
+        return line.split(/\s{2,}/).map(c => c.trim());
+      });
+    }
+
+    mergeAnalyzeBtn.addEventListener("click", async () => {
+      try {
+        const { grid } = await readActiveGrid();
+        const rawSource = mergeSourceData.value.trim();
+        if (!rawSource) throw new Error("Please paste secondary sheet data to merge with.");
+        const sourceGrid = parseRawPastedGrid(rawSource);
+
+        const res = await fetch(`${BACKEND_URL}/merge/analyze`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            target_grid: grid,
+            source_grid: sourceGrid,
+            key_column_target: mergeKeyCol.value.trim() || null,
+            selected_columns: mergeColsToAdd.value.trim() ? mergeColsToAdd.value.split(",").map(s => s.trim()) : null,
+            overwrite_conflicts: document.getElementById("mergeOverwriteConflicts").checked
+          })
+        });
+        const data = await res.json();
+        const rep = data.merge_report;
+
+        mergeMatchBadge.textContent = `${rep.matched_count} Matched`;
+        mergeResultsList.innerHTML = `
+          <div style="margin-bottom:6px;">
+            <strong>Matching Key:</strong> '${rep.key_column_target}' &harr; '${rep.key_column_source}'<br>
+            <strong>Columns Added:</strong> ${rep.columns_added.join(", ") || "None"}<br>
+            <strong>Unmatched Target Rows:</strong> ${rep.unmatched_target_count}<br>
+            <strong>Unmatched Source Rows:</strong> ${rep.unmatched_source_count}
+          </div>
+        `;
+        if (rep.conflicts && rep.conflicts.length > 0) {
+          mergeResultsList.innerHTML += `<div style="color:var(--error); font-weight:700; margin-top:4px;">⚠️ ${rep.conflicts.length} Value Conflicts Detected:</div>`;
+          rep.conflicts.slice(0, 5).forEach(cf => {
+            mergeResultsList.innerHTML += `<div style="font-size:10.5px;">• ${cf.key} [${cf.column}]: Sheet 1 '${cf.target_value}' vs Sheet 2 '${cf.source_value}'</div>`;
+          });
+        }
+        mergeResultsBox.style.display = "block";
+      } catch (err) {
+        showNotification(err.message, "error");
+      }
+    });
+
+    mergeApplyBtn.addEventListener("click", async () => {
+      try {
+        const { grid, startRow, startCol } = await readActiveGrid();
+        const rawSource = mergeSourceData.value.trim();
+        if (!rawSource) throw new Error("Please paste secondary sheet data to merge with.");
+        const sourceGrid = parseRawPastedGrid(rawSource);
+
+        const res = await fetch(`${BACKEND_URL}/merge/analyze`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            target_grid: grid,
+            source_grid: sourceGrid,
+            key_column_target: mergeKeyCol.value.trim() || null,
+            selected_columns: mergeColsToAdd.value.trim() ? mergeColsToAdd.value.split(",").map(s => s.trim()) : null,
+            overwrite_conflicts: document.getElementById("mergeOverwriteConflicts").checked
+          })
+        });
+        const data = await res.json();
+        const rep = data.merge_report;
+        const mergedGrid = rep.merged_grid;
+
+        await Excel.run(async (context) => {
+          const sheet = context.workbook.worksheets.getActiveWorksheet();
+          pushHistory(grid, startRow, startCol, `Merged ${rep.matched_count} records from second sheet`);
+
+          const r = mergedGrid.length;
+          const c = mergedGrid[0].length;
+          const range = sheet.getRangeByIndexes(startRow, startCol, r, c);
+          range.values = mergedGrid;
+          range.format.autofitColumns();
+          range.select();
+          await context.sync();
+          showNotification(`<strong>Merge Complete!</strong> Matched ${rep.matched_count} records. Added ${rep.columns_added.join(", ")}.`, "success");
+        });
+      } catch (err) {
+        showNotification(err.message, "error");
+      }
+    });
+
+    // =========================================================================
+    // FEATURE 3: FORMULA GENERATOR & FIXER
+    // =========================================================================
+    const generateFormulaBtn = document.getElementById("generateFormulaBtn");
+    const explainFormulaBtn = document.getElementById("explainFormulaBtn");
+    const fixFormulaBtn = document.getElementById("fixFormulaBtn");
+    const formulaPromptInput = document.getElementById("formulaPromptInput");
+    const formulaExplainInput = document.getElementById("formulaExplainInput");
+    const formulaFixInput = document.getElementById("formulaFixInput");
+    const formulaResultCard = document.getElementById("formulaResultCard");
+    const formulaCode = document.getElementById("formulaCode");
+    const formulaExplanation = document.getElementById("formulaExplanation");
+    const copyFormulaBtn = document.getElementById("copyFormulaBtn");
+    const insertFormulaColBtn = document.getElementById("insertFormulaColBtn");
+
+    let currentGeneratedFormula = "";
+    let currentSuggestedHeader = "Calculated Column";
+
+    generateFormulaBtn.addEventListener("click", async () => {
+      try {
+        const { grid } = await readActiveGrid();
+        const headers = grid.length > 0 ? grid[0].map(c => String(c)) : ["A", "B", "C", "D"];
+        const prompt = formulaPromptInput.value.trim();
+        if (!prompt) throw new Error("Please type what you want to calculate.");
+
+        const res = await fetch(`${BACKEND_URL}/formula/generate`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ prompt, headers, current_row: 2 })
+        });
+        const data = await res.json();
+
+        currentGeneratedFormula = data.formula;
+        currentSuggestedHeader = data.suggested_header || "Calculated Column";
+        formulaCode.textContent = data.formula;
+        formulaExplanation.textContent = data.explanation;
+        formulaResultCard.style.display = "block";
+      } catch (err) {
+        showNotification(err.message, "error");
+      }
+    });
+
+    explainFormulaBtn.addEventListener("click", async () => {
+      try {
+        const formula = formulaExplainInput.value.trim();
+        if (!formula) throw new Error("Please enter a formula to explain.");
+
+        const res = await fetch(`${BACKEND_URL}/formula/explain`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ formula })
+        });
+        const data = await res.json();
+        currentGeneratedFormula = data.formula;
+        formulaCode.textContent = data.formula;
+        formulaExplanation.textContent = data.summary;
+        formulaResultCard.style.display = "block";
+      } catch (err) {
+        showNotification(err.message, "error");
+      }
+    });
+
+    fixFormulaBtn.addEventListener("click", async () => {
+      try {
+        const broken = formulaFixInput.value.trim();
+        if (!broken) throw new Error("Please enter a formula error (e.g. #REF!, #DIV/0!).");
+
+        const res = await fetch(`${BACKEND_URL}/formula/fix`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ broken_formula: broken })
+        });
+        const data = await res.json();
+        currentGeneratedFormula = data.fixed_formula;
+        formulaCode.textContent = data.fixed_formula;
+        formulaExplanation.innerHTML = `<strong>${data.error_type} Diagnosis:</strong> ${data.diagnosis}`;
+        formulaResultCard.style.display = "block";
+      } catch (err) {
+        showNotification(err.message, "error");
+      }
+    });
+
+    copyFormulaBtn.addEventListener("click", () => {
+      if (currentGeneratedFormula) {
+        navigator.clipboard.writeText(currentGeneratedFormula);
+        showNotification("Formula copied to clipboard!", "success");
+      }
+    });
+
+    insertFormulaColBtn.addEventListener("click", async () => {
+      if (!currentGeneratedFormula) return;
+      try {
+        const { grid, startRow, startCol } = await readActiveGrid();
+        if (grid.length === 0) throw new Error("Active sheet is empty.");
+
+        await Excel.run(async (context) => {
+          const sheet = context.workbook.worksheets.getActiveWorksheet();
+          pushHistory(grid, startRow, startCol, `Added formula column '${currentSuggestedHeader}'`);
+
+          const targetCol = startCol + grid[0].length;
+          // Set Header
+          const headerCell = sheet.getCell(startRow, targetCol);
+          headerCell.values = [[currentSuggestedHeader]];
+          headerCell.format.font.bold = true;
+
+          // Set formula for rows
+          for (let r = 1; r < grid.length; r++) {
+            const cell = sheet.getCell(startRow + r, targetCol);
+            const rowFormula = currentGeneratedFormula.replace(/(?<=[A-Z])2\b/g, String(startRow + r + 1));
+            cell.formulas = [[rowFormula]];
+          }
+
+          sheet.getUsedRange().format.autofitColumns();
+          await context.sync();
+          showNotification(`Inserted formula column '${currentSuggestedHeader}'!`, "success");
+        });
+      } catch (err) {
+        showNotification("Could not insert formula column: " + err.message, "error");
+      }
+    });
+
+    // =========================================================================
+    // FEATURE 4: AUTOMATIC REPORTS & DASHBOARDS
+    // =========================================================================
+    const generateReportBtn = document.getElementById("generateReportBtn");
+    const reportPromptInput = document.getElementById("reportPromptInput");
+    const reportKpiPreview = document.getElementById("reportKpiPreview");
+
+    async function createDashboardSheet(dashData) {
+      await Excel.run(async (context) => {
+        const sheets = context.workbook.worksheets;
+        const sheetName = dashData.sheet_name || "Executive Dashboard";
+        
+        // Add new sheet (handles existing sheet name gracefully)
+        let dashSheet;
+        try {
+          dashSheet = sheets.add(sheetName);
+        } catch {
+          dashSheet = sheets.add(`${sheetName} ${Date.now() % 1000}`);
+        }
+        dashSheet.activate();
+
+        const grid = dashData.dashboard_grid;
+        const rCount = grid.length;
+        const cCount = grid[0].length;
+        const targetRange = dashSheet.getRangeByIndexes(0, 0, rCount, cCount);
+        targetRange.values = grid;
+
+        // Header Banner Formatting
+        const titleRange = dashSheet.getRangeByIndexes(0, 0, 1, cCount);
+        titleRange.format.fill.color = "#107c41";
+        titleRange.format.font.color = "#ffffff";
+        titleRange.format.font.bold = true;
+        titleRange.format.font.size = 14;
+
+        // KPI Headers Formatting
+        const kpiHeader = dashSheet.getRangeByIndexes(3, 0, 1, 5);
+        kpiHeader.format.fill.color = "#e2e8f0";
+        kpiHeader.format.font.bold = true;
+
+        // Top N Headers Formatting
+        const topNHeader = dashSheet.getRangeByIndexes(8, 0, 1, 5);
+        topNHeader.format.fill.color = "#e2e8f0";
+        topNHeader.format.font.bold = true;
+
+        // Add Office.js Chart
+        if (dashData.chart_config && dashData.chart_config.recommended) {
+          const cfg = dashData.chart_config;
+          const chartDataRange = dashSheet.getRangeByIndexes(cfg.data_start_row, cfg.data_start_col, cfg.data_row_count, cfg.data_col_count);
+          const chart = dashSheet.charts.add(Excel.ChartType.columnClustered, chartDataRange, Excel.ChartSeriesBy.columns);
+          chart.title.text = cfg.title;
+          chart.setPosition("G4", "N18");
+        }
+
+        targetRange.format.autofitColumns();
+        await context.sync();
+
+        // Update KPI Cards in UI
+        if (dashData.kpis) {
+          document.getElementById("kpiLabel1").textContent = "Total " + (dashData.kpis.primary_metric || "");
+          document.getElementById("kpiVal1").textContent = Number(dashData.kpis.total).toLocaleString();
+          document.getElementById("kpiLabel2").textContent = "Average";
+          document.getElementById("kpiVal2").textContent = Number(dashData.kpis.average).toLocaleString();
+          document.getElementById("kpiLabel3").textContent = "Highest";
+          document.getElementById("kpiVal3").textContent = Number(dashData.kpis.maximum).toLocaleString();
+          document.getElementById("kpiLabel4").textContent = "Records";
+          document.getElementById("kpiVal4").textContent = dashData.kpis.count;
+          reportKpiPreview.style.display = "block";
+        }
+
+        showNotification(
+          `<strong>Dashboard Created!</strong> A new report sheet '${dashSheet.name}' has been created with KPIs, Rankings, and native Excel charts. Raw data was preserved!`,
+          "success"
+        );
+      });
+    }
+
+    generateReportBtn.addEventListener("click", async () => {
+      try {
+        const { grid } = await readActiveGrid();
+        if (grid.length === 0) throw new Error("Please open or paste table data in the worksheet first.");
+        
+        const prompt = reportPromptInput.value.trim();
+        const res = await fetch(`${BACKEND_URL}/report/generate`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ grid_data: grid, prompt })
+        });
+        const dashData = await res.json();
+        await createDashboardSheet(dashData);
+      } catch (err) {
+        showNotification(err.message, "error");
+      }
+    });
+
+    // =========================================================================
+    // FEATURE 5: ANOMALY & DATA VALIDATION AUDIT
+    // =========================================================================
+    const runAuditBtn = document.getElementById("runAuditBtn");
+    const highlightAnomaliesBtn = document.getElementById("highlightAnomaliesBtn");
+    const auditPromptInput = document.getElementById("auditPromptInput");
+    const auditResultsBox = document.getElementById("auditResultsBox");
+    const auditResultsList = document.getElementById("auditResultsList");
+    const auditCountBadge = document.getElementById("auditCountBadge");
+
+    let currentAnomalies = [];
+    let currentAuditStartRow = 0;
+    let currentAuditStartCol = 0;
+
+    runAuditBtn.addEventListener("click", async () => {
+      try {
+        const { grid, startRow, startCol } = await readActiveGrid();
+        if (grid.length === 0) throw new Error("Please open or paste table data in the worksheet first.");
+        
+        currentAuditStartRow = startRow;
+        currentAuditStartCol = startCol;
+
+        const prompt = auditPromptInput.value.trim();
+        const res = await fetch(`${BACKEND_URL}/validate/anomalies`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ grid_data: grid, prompt })
+        });
+        const data = await res.json();
+        currentAnomalies = data.anomalies || [];
+
+        auditCountBadge.textContent = `${currentAnomalies.length} flagged`;
+        auditCountBadge.className = currentAnomalies.length > 0 ? "tag tag-danger" : "tag tag-success";
+
+        auditResultsList.innerHTML = "";
+        if (currentAnomalies.length > 0) {
+          currentAnomalies.forEach(a => {
+            const item = document.createElement("div");
+            item.className = "result-item";
+            const tagClass = a.severity === "danger" ? "tag-danger" : "tag-warning";
+            item.innerHTML = `
+              <span class="tag ${tagClass}">${a.type}</span>
+              <div><strong>Row ${a.row}, Col ${a.header}</strong>: ${a.reason}</div>
+            `;
+            auditResultsList.appendChild(item);
+          });
+        } else {
+          auditResultsList.innerHTML = `<div style="padding:6px; color:#15803d;">No statistical outliers or invalid values found.</div>`;
+        }
+        auditResultsBox.style.display = "block";
+      } catch (err) {
+        showNotification(err.message, "error");
+      }
+    });
+
+    highlightAnomaliesBtn.addEventListener("click", async () => {
+      if (!currentAnomalies || currentAnomalies.length === 0) return;
+      try {
+        await Excel.run(async (context) => {
+          const sheet = context.workbook.worksheets.getActiveWorksheet();
+          currentAnomalies.forEach(a => {
+            const r = currentAuditStartRow + a.row;
+            const c = currentAuditStartCol + a.col;
+            const cell = sheet.getCell(r, c);
+            cell.format.fill.color = a.severity === "danger" ? "#fee2e2" : "#fef3c7";
+          });
+          await context.sync();
+          showNotification(`Highlighted ${currentAnomalies.length} anomalous cells in Excel!`, "success");
+        });
+      } catch (err) {
+        showNotification("Could not highlight cells: " + err.message, "error");
+      }
+    });
+
+    // =========================================================================
+    // LOAD DEMO DATASET
+    // =========================================================================
     loadDemoBtn.addEventListener("click", async () => {
       hideNotification();
       try {
@@ -759,37 +1802,33 @@
           const sheet = context.workbook.worksheets.getActiveWorksheet();
           
           const demoData = [
-            ["Student Name", "Quiz 1 (20)", "Quiz 2 (20)", "Midterm (100)", "Final Exam (100)", "Total Score (100)"],
-            ["Emma Watson", 19, 18, 92, 95, 93.5],
-            ["Liam Johnson", 14, 16, 78, 82, 79.0],
-            ["Sophia Martinez", 20, 19, 96, 98, 97.0],
-            ["Noah Brown", 12, 11, 65, 70, 67.0],
-            ["Olivia Davis", 17, 18, 88, 85, 86.5],
-            ["Lucas Wilson", 15, 14, 72, 75, 74.0],
-            ["Ava Taylor", 18, 19, 90, 93, 91.5]
+            ["Employee ID", "Employee Name", "Department", "Email", "Birth Date", "Phone", "Monthly Sales", "Base Salary", "Performance Score"],
+            ["E101", "Emma Watson", "Sales", "emma@company.com", "1990-05-12", "(555) 123-4567", 45000, 85000, 92],
+            ["E102", "liam JOHNSON", "Sales", "liam@company.com", "1992-08-20", "555-234-5678", 62000, 90000, 85],
+            ["E103", "Sophia Martinez", "Marketing", "sophia@company.com", "15/11/1988", "555.345.6789", 28000, 78000, 74],
+            ["", "Noah Brown", "Engineering", "noah_bad_email", "1994-01-15", "5554567890", 15000, 240000, 98],
+            ["E105", "Olivia Davis", "Sales", "olivia@company.com", "2035-09-01", "555-567-8901", 73000, 92000, 88],
+            ["E106", "Lucas Wilson", "Support", "lucas@company.com", "1993-03-10", "(555) 678-9012", 19000, 65000, 68],
+            ["E107", "Ava Taylor", "Sales", "ava@company.com", "1991-07-25", "5557890123", 58000, 88000, 89],
+            ["E101", "Emma Watson", "Sales", "emma@company.com", "1990-05-12", "(555) 123-4567", 45000, 85000, 92] // Duplicate row!
           ];
 
           const rowCount = demoData.length;
           const colCount = demoData[0].length;
-
-          // Place demo table at top-left (A1)
           const targetRange = sheet.getRangeByIndexes(0, 0, rowCount, colCount);
           targetRange.values = demoData;
 
-          // Format header nicely
           const headerRange = sheet.getRangeByIndexes(0, 0, 1, colCount);
           headerRange.format.fill.color = "#107c41";
           headerRange.format.font.color = "#ffffff";
           headerRange.format.font.bold = true;
-          headerRange.format.font.name = "Segoe UI";
 
           targetRange.format.autofitColumns();
           targetRange.select();
-
           await context.sync();
 
           showNotification(
-            "Demo Gradebook loaded! Try clicking <strong>'Letter Grades'</strong> or <strong>'Class Stats'</strong> above.",
+            "Demo Dataset Loaded! Try <strong>'Smart Clean'</strong> (fixes names, dates, duplicate row) or <strong>'Audit'</strong> (flags department outlier $240k, invalid email, future birth date)!",
             "success"
           );
         });

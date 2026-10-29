@@ -15,7 +15,7 @@
 
   <!-- Display Name and Description -->
   <DisplayName DefaultValue="Local Excel AI" />
-  <Description DefaultValue="Offline AI Copilot for Teachers powered by local Ollama qwen2.5:7b" />
+  <Description DefaultValue="Dedicated Offline AI Copilot for Teachers" />
 
   <!-- Icon references -->
   <IconUrl DefaultValue="http://localhost:3000/assets/icon-32.png" />

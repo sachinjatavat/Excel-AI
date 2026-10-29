@@ -53,7 +53,7 @@ echo ======================================================================
 echo                    SERVICES RUNNING SUCCESSFULLY
 echo ======================================================================
 echo.
-echo  * AI Engine:         Built-in Offline Table Engine (Zero Setup / No Ollama needed)
+echo  * AI Engine:         Dedicated Excel AI Engine (Ultra-Fast & 100% Offline)
 echo  * Backend API:       http://127.0.0.1:8000
 echo  * Taskpane Web:      http://localhost:3000/taskpane.html
 echo.

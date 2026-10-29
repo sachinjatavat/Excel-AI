@@ -1,7 +1,7 @@
 # 🎓 Local Excel AI Copilot for Teachers
 
 > **100% Offline, Private, and Zero-Setup AI Assistant for Microsoft Excel.**  
-> Powered by a dedicated **Built-in Excel Table Engine** with optional **Google Gemini / Ollama** support.
+> Powered by a dedicated **Built-in Excel AI Engine** with optional **Google Gemini** support.
 
 ---
 
@@ -82,18 +82,65 @@ pip install -r requirements.txt
 
 ---
 
-## 🎯 Teacher Prompt Cheat-Sheet
+## 🚀 6 Flagship Features (The Best Capabilities)
 
-Here are real-world teacher prompts you can type or click directly from the sidebar shortcuts:
+The Local Excel AI Copilot comes equipped with dedicated, offline engines for everyday data workflows:
 
-| Task | Example Prompt | What the Copilot Does |
+### 1. 🧹 Smart Data Cleaning (High Priority)
+- **Automatic Audit & Remediation:** Detects and removes exact duplicate rows and blank lines.
+- **Inconsistent Name & Text Cleaning:** Converts messy casings (`john DOE`, `mCDONALD`, `ALICE`) to Proper Title Case (`John Doe`, `McDonald`, `Alice`) and removes redundant internal/trailing whitespace.
+- **Date & Phone Standardization:** Formats mixed date strings (`15/11/1988`, `Nov 15 1988`, `1988.11.15`) into uniform ISO `YYYY-MM-DD`. Formats mixed phone numbers into standard `(XXX) XXX-XXXX` or international format.
+- **Missing & Placeholder Values:** Flags or cleans `"N/A"`, `"null"`, `"-"`, `"None"` placeholders.
+- **Approval / Preview Mode:** Full support for *"Clean this sheet, but don't delete any data without showing me first"* — presents a cell-by-cell preview with checkboxes before applying any modification.
+
+### 2. 🔀 Advanced Sheet Merging
+- **Multi-Workbook Matching:** Intelligently joins records across workbooks or sheets using **Email, Employee/Student ID, Phone Number, or Name**.
+- **Selective Column Addition:** Import only the columns you want (e.g., *"Match employees by email and add their salaries from the second workbook"*).
+- **Conflict & Mismatch Flags:** Automatically flags conflicting values (e.g. `Department: Sales vs Marketing`) and reports unmatched records from both source and target.
+
+### 3. ⚡ Formula Generator, Explainer & Fixer
+- **Plain English to Excel Formula:** Translates natural instructions into dynamic formulas mapped to your worksheet's actual column letters:
+  - *"Calculate the bonus as 10% of salary if performance is above 80"* $\rightarrow$ `=IF(I2>80, H2*0.1, 0)`.
+  - Supports `IF`, `SUMIFS`, `COUNTIF`, `AVERAGEIFS`, `XLOOKUP`, `VLOOKUP`, `DATEDIF`, `CONCATENATE`, and multi-condition logic.
+- **Formula Explainer:** Translates cryptic nested Excel formulas into plain English step-by-step breakdowns.
+- **Formula Error Fixer:** Automatically diagnoses `#REF!`, `#VALUE!`, `#N/A`, `#DIV/0!`, `#NAME?` and produces safe corrected formulas (e.g. wrapped in `=IFERROR(...)` or `=IFNA(...)`).
+
+### 4. 📊 Automatic Reports & Executive Dashboards
+- **100% Non-Destructive:** Creates a brand **new report sheet** (`Executive Dashboard`) leaving your raw original data completely untouched!
+- **Executive KPIs:** Calculates Total, Average, Spread, Highest, Lowest, and Record Counts.
+- **Top N Rankings:** Automatically ranks top performers (e.g. *"Create a monthly sales dashboard with the top five employees"*).
+- **Native Excel Charts:** Generates formatted KPI summary cards, pivot tables, and inserts native Office.js Excel Clustered Column/Bar charts directly onto the dashboard sheet.
+
+### 5. 🔍 Data Validation & Anomaly Detection
+- **Department & Category Relative Outliers:** Identifies employees whose salaries or expenses deviate significantly from peers in the same department (e.g. *"Find employees whose salaries are unusually high compared with their department"*).
+- **Chronology & Date Validation:** Detects impossible future birth dates, out-of-bounds years, and chronological violations.
+- **Format Integrity:** Flags missing mandatory IDs, invalid email formats (missing `@` or domain), and abnormal negative numbers.
+- **Visual Highlighting in Excel:** One-click button to highlight anomalous cells directly in Excel with soft warning colors (`#FEE2E2` / `#FEF3C7`).
+
+### 6. ↩️ Undo, Live Preview & Change History
+- **Interactive Live Preview Drawer:** Displays exact diffs before writing to the sheet: `Cell | Header | Before | After | Reason`.
+- **Change Log:** Tracks every operation in the session with timestamps and cell counts.
+- **One-Click Rollback / Undo:** Click **"↩️ Undo"** to instantly revert your Excel sheet back to its prior state.
+
+---
+
+## 🎯 Universal Prompt Cheat-Sheet (Any Domain & Language)
+
+You can type prompts in **English, हिन्दी (Devanagari), or Hinglish / Romanized Hindi**:
+
+| Category | Example Prompt | What the Copilot Does |
 | :--- | :--- | :--- |
-| **Letter Grades** | `"Calculate letter grades (A, B, C, D, F) in a new column based on Total Score (90+ A, 80-89 B, 70-79 C, 60-69 D, below 60 F)."` | Adds a "Letter Grade" column and computes grades for every student. |
-| **Grade Curving** | `"Add a 5-point curve to the Midterm column, ensuring no score exceeds 100."` | Updates test scores with the curve while capping at 100. |
-| **Class Summary** | `"Add summary rows at the bottom with Average, Highest, and Lowest for all test columns."` | Calculates class statistics and appends them at the bottom. |
-| **Student Remarks** | `"Add a 'Teacher Remarks' column with encouraging, personalized feedback for each student based on their score."` | Generates constructive, encouraging progress notes for report cards. |
-| **Attendance %** | `"Calculate attendance percentage for each student in a new column based on Present days vs Total classes."` | Adds an attendance percentage column rounded to 1 decimal. |
-| **Clean Student Names**| `"Standardize all student names to Proper Title Case and remove extra spaces."` | Cleans up messy rosters (e.g., `john DOE` $\rightarrow$ `John Doe`). |
+| **Add Row (Any Phrasing)** | `"add new row"`, `"insert row"`, `"add 3 rows"`, or `"row add karo"` | Adds clean new row(s) to the table with auto-incremented ID. |
+| **Add Row with Data** | `"add employee Rahul with salary 75000 and department Engineering"` | Inserts new record and populates respective columns automatically. |
+| **Add / Insert Column** | `"add new column Remarks"` or `"add column Status with default Pending"` | Appends column with optional default value across all data rows. |
+| **Delete Row / Column** | `"delete last row"`, `"delete row 2"`, or `"delete column Bonus"` | Deletes target row or column cleanly by order number or name. |
+| **Smart Cleaning** | `"Clean this sheet, but don't delete any data without showing me first."` | Audits sheet, finds duplicate rows, formats dates/names, and opens interactive preview for approval. |
+| **Outlier Detection** | `"Find employees whose salaries are unusually high compared with their department."` | Calculates department-relative Z-scores and flags employees with abnormal compensation. |
+| **Formula Generator** | `"Calculate the bonus as 10% of salary if performance is above 80."` | Generates `=IF(I2>80, H2*0.1, 0)` dynamically mapped to your column letters and inserts column. |
+| **Formula Fixer** | `"Fix formula error #DIV/0!"` or `"=A2/#DIV/0!"` | Diagnoses root cause and wraps formula safely in `=IFERROR(A2/B2, 0)`. |
+| **Executive Dashboard** | `"Create a monthly sales dashboard with the top five employees."` | Generates a new `Executive Dashboard` sheet with KPI cards, Top 5 ranking, and Excel chart. |
+| **Sheet Merging** | `"Match employees by email and add their salaries from the second workbook."` | Matches across sheets using email key, imports salary column, and flags conflicting fields. |
+| **Salary Hike & Bonuses** | `"Give 10% salary hike to Base Salary"` or `"salary me 10% hike do"` | Increases salary by 10% instantly across all employees. |
 
 ---
 
@@ -101,14 +148,21 @@ Here are real-world teacher prompts you can type or click directly from the side
 
 ```text
 excel/
-├── backend.py            # FastAPI backend (port 8000) communicating with Ollama (qwen2.5:7b)
-├── taskpane.html         # Office.js HTML5/JS sidebar with Fluent UI & teacher shortcuts
+├── backend.py            # FastAPI backend (port 8000) with endpoints for all 6 features
+├── table_engine.py       # Table instruction engine connecting prompt parser to specialized modules
+├── data_cleaning.py      # Feature 1: Smart Data Cleaning (duplicates, empty rows, names, dates, phones)
+├── sheet_merging.py      # Feature 2: Advanced Sheet Merging (key matching, column import, conflict detection)
+├── formula_engine.py     # Feature 3: Formula Generator, Explainer, and Fixer (#REF!, #DIV/0!, #N/A)
+├── dashboard_engine.py   # Feature 4: Automatic Dashboards & Reports (KPIs, Top 5, Excel native charts)
+├── anomaly_engine.py     # Feature 5: Anomaly Detection (department outliers, impossible dates, invalid emails)
+├── diff_engine.py        # Feature 6: Grid Diff, Live Preview drawer, and Undo rollback snapshots
+├── taskpane.html         # Office.js HTML5/JS sidebar with Fluent UI, dedicated tabs, and Undo bar
 ├── manifest.xml          # Office Add-in XML manifest (v1.1) with ribbon button integration
+├── test_all_features.py  # Comprehensive test suite validating all 6 core features
 ├── requirements.txt      # Python dependencies (fastapi, uvicorn, requests, pydantic)
-├── install.bat           # Admin batch script: registers Trusted Catalog in Windows Registry
+├── install.bat           # Setup batch script: registers Trusted Catalog in Windows Registry
 ├── start_assistant.bat   # Launcher script: starts backend, HTTP server, and launches Excel
-├── assets/               # High-resolution add-in icons (16px, 32px, 64px, 80px)
-└── README.md             # Complete user and setup documentation
+└── assets/               # High-resolution add-in icons (16px, 32px, 64px, 80px)
 ```
 
 ---

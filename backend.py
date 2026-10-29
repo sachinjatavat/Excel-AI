@@ -2,22 +2,29 @@ import json
 import re
 import os
 import logging
-from typing import Any, List, Optional
+from typing import Any, List, Optional, Dict
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, Field
 import requests
 import uvicorn
+
 import table_engine
+import data_cleaning
+import sheet_merging
+import formula_engine
+import dashboard_engine
+import anomaly_engine
+import diff_engine
 
 # Configure logging
 logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(message)s")
 logger = logging.getLogger("excel_ai_backend")
 
 app = FastAPI(
-    title="Local Excel AI Copilot for Teachers",
-    description="Offline Excel Table AI Engine + Optional Cloud AI (Gemini / Groq / Ollama)",
-    version="2.0.0",
+    title="Local Excel AI Copilot",
+    description="Dedicated Fast Offline Excel AI Engine with Smart Cleaning, Merging, Formulas, Dashboards, Anomaly Detection & Undo/Preview",
+    version="3.0.0",
 )
 
 # Enable CORS for all origins
@@ -29,44 +36,68 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-OLLAMA_BASE_URL = "http://localhost:11434"
-OLLAMA_GENERATE_URL = f"{OLLAMA_BASE_URL}/api/generate"
-OLLAMA_TAGS_URL = f"{OLLAMA_BASE_URL}/api/tags"
-DEFAULT_MODEL = "qwen2.5:7b"
 
+# ==============================================================================
+# REQUEST MODELS
+# ==============================================================================
 
 class ExecuteRequest(BaseModel):
-    user_prompt: str = Field(..., description="Teacher's natural language instruction or pasted data")
+    user_prompt: str = Field(..., description="Natural language instruction or pasted data")
     grid_data: Optional[List[List[Any]]] = Field(default=[], description="2D array representing Excel worksheet rows and columns")
+    secondary_grid: Optional[List[List[Any]]] = Field(default=None, description="Optional secondary sheet grid for merging")
     api_key: Optional[str] = Field(default=None, description="Optional Google Gemini API key")
-    provider: Optional[str] = Field(default="auto", description="Execution engine: auto, builtin, gemini, or ollama")
+    provider: Optional[str] = Field(default="auto", description="Execution engine: auto, builtin, or gemini")
+    preview_only: Optional[bool] = Field(default=False, description="Whether to preview changes before applying")
 
 
-def get_installed_ollama_models() -> List[str]:
-    try:
-        res = requests.get(OLLAMA_TAGS_URL, timeout=1.5)
-        if res.status_code == 200:
-            return [m.get("name") for m in res.json().get("models", []) if "name" in m]
-    except Exception:
-        pass
-    return []
+class CleanAuditRequest(BaseModel):
+    grid_data: List[List[Any]] = Field(..., description="2D table grid")
+    remove_duplicates: bool = Field(default=True)
+    remove_empty: bool = Field(default=True)
+    standardize_names: bool = Field(default=True)
+    standardize_dates: bool = Field(default=True)
+    standardize_phones: bool = Field(default=True)
+    clean_placeholders: bool = Field(default=True)
 
 
-def resolve_active_ollama_model() -> str:
-    installed = get_installed_ollama_models()
-    if not installed:
-        return DEFAULT_MODEL
-    for m in installed:
-        if DEFAULT_MODEL in m or m.startswith("qwen2.5"):
-            return m
-    return installed[0]
+class MergeRequest(BaseModel):
+    target_grid: List[List[Any]] = Field(..., description="Active sheet grid")
+    source_grid: List[List[Any]] = Field(..., description="Secondary sheet or workbook grid")
+    key_column_target: Optional[str] = Field(default=None)
+    key_column_source: Optional[str] = Field(default=None)
+    selected_columns: Optional[List[str]] = Field(default=None)
+    overwrite_conflicts: bool = Field(default=False)
 
+
+class FormulaGenRequest(BaseModel):
+    prompt: str = Field(..., description="Plain English description of formula")
+    headers: List[str] = Field(..., description="Worksheet column headers")
+    current_row: int = Field(default=2)
+
+
+class FormulaExplainRequest(BaseModel):
+    formula: str = Field(..., description="Excel formula (e.g. =IF(C2>80, B2*0.1, 0))")
+
+
+class FormulaFixRequest(BaseModel):
+    broken_formula: str = Field(..., description="Formula or error cell (e.g. #REF!, #DIV/0!)")
+
+
+class ValidateRequest(BaseModel):
+    grid_data: List[List[Any]] = Field(..., description="2D table grid")
+    prompt: Optional[str] = Field(default="", description="Optional focus e.g. department outliers")
+
+
+class DashboardRequest(BaseModel):
+    grid_data: List[List[Any]] = Field(..., description="2D table grid")
+    prompt: Optional[str] = Field(default="", description="Optional dashboard parameters")
+
+
+# ==============================================================================
+# CLOUD AI HELPER (OPTIONAL GEMINI)
+# ==============================================================================
 
 def extract_and_parse_json(raw_text: str) -> dict:
-    """
-    Cleans markdown formatting, code fences, and extracts a valid JSON object
-    from the LLM's raw response.
-    """
     cleaned = raw_text.strip()
     cleaned = re.sub(r"^```(?:json)?\s*", "", cleaned, flags=re.MULTILINE)
     cleaned = re.sub(r"\s*```$", "", cleaned, flags=re.MULTILINE)
@@ -137,6 +168,7 @@ def call_gemini(user_prompt: str, grid_data: List[List[Any]], api_key: str) -> d
     raw_text = candidates[0]["content"]["parts"][0]["text"]
     parsed = extract_and_parse_json(raw_text)
     grid = table_engine.normalize_rectangular_grid(parsed.get("updated_grid", []))
+    diff = diff_engine.compute_grid_diff(grid_data, grid)
     return {
         "status": "success",
         "updated_grid": grid,
@@ -144,94 +176,49 @@ def call_gemini(user_prompt: str, grid_data: List[List[Any]], api_key: str) -> d
         "columns_count": len(grid[0]) if grid else 0,
         "message": "Processed successfully with Google Gemini AI.",
         "engine": "Google Gemini AI (Cloud)",
+        "diff": diff,
     }
 
 
-def call_ollama(user_prompt: str, grid_data: List[List[Any]]) -> dict:
-    active_model = resolve_active_ollama_model()
-    system_prompt = (
-        "You are an expert offline Excel AI Copilot and teacher's data assistant. "
-        "Your task is to update or modify an Excel 2D grid based on the teacher's instruction.\n"
-        "STRICT OUTPUT FORMAT: Respond ONLY with a valid JSON object matching this schema:\n"
-        "{\n"
-        '  "status": "success",\n'
-        '  "updated_grid": [[row1_col1, row1_col2, ...], [row2_col1, row2_col2, ...]]\n'
-        "}\n"
-        "Do NOT output markdown ticks or conversational text. Only output raw JSON."
-    )
-    prompt = (
-        f"INPUT 2D EXCEL GRID:\n"
-        f"{json.dumps(grid_data, ensure_ascii=False)}\n\n"
-        f"TEACHER'S INSTRUCTION:\n"
-        f"{user_prompt}\n\n"
-        f"Return ONLY the JSON response with the updated grid."
-    )
-    payload = {
-        "model": active_model,
-        "prompt": prompt,
-        "system": system_prompt,
-        "stream": False,
-        "options": {"temperature": 0.1, "top_p": 0.9},
-    }
-    res = requests.post(OLLAMA_GENERATE_URL, json=payload, timeout=90)
-    if not res.ok:
-        raise Exception(f"Ollama returned HTTP {res.status_code}: {res.text}")
-    raw_output = res.json().get("response", "")
-    parsed = extract_and_parse_json(raw_output)
-    grid = table_engine.normalize_rectangular_grid(parsed.get("updated_grid", []))
-    return {
-        "status": "success",
-        "updated_grid": grid,
-        "rows_count": len(grid),
-        "columns_count": len(grid[0]) if grid else 0,
-        "message": f"Processed successfully with Ollama ({active_model}).",
-        "engine": f"Local Ollama ({active_model})",
-    }
-
+# ==============================================================================
+# ENDPOINTS
+# ==============================================================================
 
 @app.get("/")
 @app.get("/health")
 def health_check():
-    """
-    Health check endpoint reporting readiness of the Built-in Table AI Engine,
-    Ollama (if installed), and Gemini configuration.
-    """
-    ollama_online = False
-    available_models = []
-    try:
-        res = requests.get(OLLAMA_TAGS_URL, timeout=1.5)
-        if res.status_code == 200:
-            ollama_online = True
-            models_data = res.json().get("models", [])
-            available_models = [m.get("name") for m in models_data if "name" in m]
-    except Exception:
-        pass
-
     env_gemini_key = bool(os.environ.get("GEMINI_API_KEY"))
-
     return {
         "status": "healthy",
         "service": "Local Excel AI Copilot Backend",
-        "builtin_engine": "Ready (100% Offline, Zero Downloads)",
-        "ollama_online": ollama_online,
-        "ollama_models": available_models,
+        "version": "3.0.0",
+        "features": [
+            "Smart Data Cleaning (Duplicates, Empty Rows, Names, Dates, Phones)",
+            "Advanced Sheet Merging (Key Matching, Conflicts, Unmatched)",
+            "Formula Generator & Fixer (#REF!, #VALUE!, Plain English)",
+            "Automatic Dashboards & Reports (KPIs, Top N, Office Charts)",
+            "Data Validation & Anomaly Detection (Department Outliers, Dates, Emails)",
+            "Undo, Live Preview & Change History"
+        ],
+        "builtin_engine": "Ready (100% Offline, Fast & Dedicated)",
         "gemini_configured": env_gemini_key,
-        "default_engine": "Built-in Offline Engine",
     }
 
 
 @app.post("/execute")
 def execute_instruction(payload: ExecuteRequest):
     """
-    Primary processing endpoint.
-    1. Executes immediately via the built-in 0-download Table AI Engine.
-    2. Supports optional Gemini Cloud AI if an API key is provided.
-    3. Supports local Ollama if running.
+    Unified smart natural language execution endpoint.
+    Handles all 6 core features + general Excel table transformations.
     """
     user_prompt = payload.user_prompt.strip()
     grid_data = payload.grid_data if isinstance(payload.grid_data, list) else []
+    secondary_grid = payload.secondary_grid
     api_key = payload.api_key or os.environ.get("GEMINI_API_KEY")
     provider = (payload.provider or "auto").lower()
+    user_preview_only = payload.preview_only or any(k in user_prompt.lower() for k in [
+        "preview", "show me first", "show changes", "don't delete", "without showing", "show diff"
+    ])
 
     if not user_prompt:
         raise HTTPException(status_code=400, detail="The instruction/data prompt cannot be empty.")
@@ -244,7 +231,26 @@ def execute_instruction(payload: ExecuteRequest):
         else:
             sanitized_grid.append([row])
 
-    # 1. Explicit Gemini Cloud AI requested
+    # If secondary grid provided for merge
+    if secondary_grid and any(k in user_prompt.lower() for k in ["merge", "match", "join"]):
+        merge_res = sheet_merging.analyze_sheet_merge(sanitized_grid, secondary_grid)
+        if merge_res.get("status") == "success":
+            merged = merge_res["merged_grid"]
+            diff = diff_engine.compute_grid_diff(sanitized_grid, merged, "Sheet merge")
+            msg = f"Merged {merge_res['matched_count']} records using key '{merge_res['key_column_target']}'. Added: {', '.join(merge_res['columns_added'])}."
+            return {
+                "status": "success",
+                "updated_grid": merged,
+                "rows_count": len(merged),
+                "columns_count": len(merged[0]) if merged else 0,
+                "message": msg,
+                "engine": "Built-in Merge Engine",
+                "diff": diff,
+                "merge_report": merge_res,
+                "preview_required": user_preview_only,
+            }
+
+    # 1. Explicit Gemini Cloud AI requested with API key
     if provider == "gemini" and api_key:
         try:
             return call_gemini(user_prompt, sanitized_grid, api_key)
@@ -252,50 +258,170 @@ def execute_instruction(payload: ExecuteRequest):
             logger.warning(f"Gemini API execution failed: {e}")
             raise HTTPException(status_code=502, detail=f"Gemini API error: {str(e)}")
 
-    # 2. Try the Built-in Specialized Table AI Engine
+    # 2. Execute via Built-in Excel AI Engine
     try:
-        updated_grid, action_msg = table_engine.execute_table_instruction(sanitized_grid, user_prompt)
-        logger.info(f"Built-in table engine processed prompt: '{user_prompt[:60]}' -> {action_msg}")
+        exec_res = table_engine.execute_table_instruction(sanitized_grid, user_prompt)
+        metadata = {}
+        if len(exec_res) == 3:
+            updated_grid, action_msg, metadata = exec_res
+        else:
+            updated_grid, action_msg = exec_res
+
+        # Compute exact diff
+        diff = diff_engine.compute_grid_diff(sanitized_grid, updated_grid, action_msg)
+        
+        # Check if preview is required
+        requires_conf = metadata.get("requires_confirmation", False) or user_preview_only
+
         return {
             "status": "success",
             "updated_grid": updated_grid,
             "rows_count": len(updated_grid),
             "columns_count": len(updated_grid[0]) if updated_grid else 0,
             "message": action_msg,
-            "engine": "Built-in Table Engine (100% Offline, 0-Setup)",
+            "engine": "Built-in Excel AI Engine (Fast & Offline)",
+            "diff": diff,
+            "preview_required": requires_conf,
+            "metadata": metadata,
+            "action_type": metadata.get("action_type", "general"),
+            "cleaning_report": metadata.get("cleaning_report"),
+            "anomaly_report": metadata.get("anomaly_report"),
+            "dashboard_report": metadata.get("dashboard_report"),
+            "formula_info": metadata.get("formula_info"),
+            "is_new_sheet": metadata.get("is_new_sheet", False),
+            "sheet_name": metadata.get("sheet_name"),
         }
     except Exception as local_err:
-        logger.info(f"Built-in engine note: {local_err}. Checking fallback engines...")
-
-        # 3. Fallback to Gemini if API key is provided
+        logger.warning(f"Execution notice: {local_err}")
         if api_key:
             try:
                 return call_gemini(user_prompt, sanitized_grid, api_key)
             except Exception as gemini_err:
                 logger.warning(f"Gemini fallback failed: {gemini_err}")
 
-        # 4. Fallback to Ollama if Ollama is running
-        installed_ollama = get_installed_ollama_models()
-        if installed_ollama:
-            try:
-                return call_ollama(user_prompt, sanitized_grid)
-            except Exception as ollama_err:
-                logger.warning(f"Ollama fallback failed: {ollama_err}")
-
-        # If all failed, return clean error message
         raise HTTPException(status_code=400, detail=str(local_err))
+
+
+# ------------------------------------------------------------------------------
+# DEDICATED FEATURE ENDPOINTS
+# ------------------------------------------------------------------------------
+
+@app.post("/clean/audit")
+def clean_audit(payload: CleanAuditRequest):
+    """Audits sheet for cleaning issues and returns preview diff without deleting data."""
+    report = data_cleaning.analyze_data_cleaning(
+        payload.grid_data,
+        remove_duplicates=payload.remove_duplicates,
+        remove_empty=payload.remove_empty,
+        standardize_names=payload.standardize_names,
+        standardize_dates=payload.standardize_dates,
+        standardize_phones=payload.standardize_phones,
+        clean_placeholders=payload.clean_placeholders,
+    )
+    diff = diff_engine.compute_grid_diff(payload.grid_data, report["cleaned_grid"], "Smart data cleaning")
+    return {
+        "status": "success",
+        "report": report,
+        "diff": diff,
+    }
+
+
+@app.post("/clean/apply")
+def clean_apply(payload: CleanAuditRequest):
+    """Applies smart data cleaning to the grid."""
+    report = data_cleaning.analyze_data_cleaning(
+        payload.grid_data,
+        remove_duplicates=payload.remove_duplicates,
+        remove_empty=payload.remove_empty,
+        standardize_names=payload.standardize_names,
+        standardize_dates=payload.standardize_dates,
+        standardize_phones=payload.standardize_phones,
+        clean_placeholders=payload.clean_placeholders,
+    )
+    cleaned = report["cleaned_grid"]
+    diff = diff_engine.compute_grid_diff(payload.grid_data, cleaned, "Applied data cleaning")
+    return {
+        "status": "success",
+        "updated_grid": cleaned,
+        "diff": diff,
+        "message": f"Successfully resolved {report['total_issues_found']} cleaning issues.",
+    }
+
+
+@app.post("/merge/analyze")
+def merge_analyze(payload: MergeRequest):
+    """Analyzes merge between active sheet and second sheet/workbook."""
+    res = sheet_merging.analyze_sheet_merge(
+        payload.target_grid,
+        payload.source_grid,
+        key_column_target=payload.key_column_target,
+        key_column_source=payload.key_column_source,
+        selected_columns=payload.selected_columns,
+        overwrite_conflicts=payload.overwrite_conflicts,
+    )
+    if "error" in res:
+        raise HTTPException(status_code=400, detail=res["error"])
+    diff = diff_engine.compute_grid_diff(payload.target_grid, res["merged_grid"], "Sheet merge")
+    return {
+        "status": "success",
+        "merge_report": res,
+        "diff": diff,
+    }
+
+
+@app.post("/formula/generate")
+def formula_generate(payload: FormulaGenRequest):
+    """Generates dynamic Excel formula from plain English."""
+    res = formula_engine.generate_formula_from_prompt(
+        payload.prompt, payload.headers, payload.current_row
+    )
+    return res
+
+
+@app.post("/formula/explain")
+def formula_explain(payload: FormulaExplainRequest):
+    """Explains an Excel formula in plain English."""
+    return formula_engine.explain_formula(payload.formula)
+
+
+@app.post("/formula/fix")
+def formula_fix(payload: FormulaFixRequest):
+    """Diagnoses and fixes Excel formula errors (#REF!, #DIV/0!, #N/A, #VALUE!)."""
+    return formula_engine.fix_formula_errors(payload.broken_formula)
+
+
+@app.post("/report/generate")
+def report_generate(payload: DashboardRequest):
+    """Generates an executive dashboard with KPIs, Top N, and Chart configuration."""
+    res = dashboard_engine.generate_dashboard_report(payload.grid_data, payload.prompt)
+    if "error" in res:
+        raise HTTPException(status_code=400, detail=res["error"])
+    return res
+
+
+@app.post("/validate/anomalies")
+def validate_anomalies(payload: ValidateRequest):
+    """Performs anomaly detection and data validation audit."""
+    return anomaly_engine.detect_anomalies_and_validation(payload.grid_data, payload.prompt)
+
+
+@app.post("/diff")
+def calculate_diff(payload: Dict[str, Any]):
+    """Calculates diff between two grids."""
+    orig = payload.get("original_grid", [])
+    upd = payload.get("updated_grid", [])
+    reason = payload.get("reason", "")
+    return diff_engine.compute_grid_diff(orig, upd, reason)
 
 
 if __name__ == "__main__":
     print("=" * 65)
-    print("      LOCAL EXCEL AI COPILOT - BACKEND SERVER")
+    print("      LOCAL EXCEL AI COPILOT - ADVANCED BACKEND v3.0")
     print("=" * 65)
-    print(" * Built-in Table AI Engine: READY (100% Offline, No Ollama needed)")
-    ollama_models = get_installed_ollama_models()
-    if ollama_models:
-        print(f" * Local Ollama detected:    READY ({', '.join(ollama_models)})")
+    print(" * Engine:       Built-in Excel AI Engine (100% Offline, Fast)")
+    print(" * Features:     Smart Clean | Merging | Formulas | Dashboards | Anomaly | Undo")
     if os.environ.get("GEMINI_API_KEY"):
-        print(" * Google Gemini Cloud AI:   CONFIGURED")
-    print(" * Server URL:               http://127.0.0.1:8000")
+        print(" * Cloud AI:     Google Gemini Configured (Optional)")
+    print(" * Server URL:   http://127.0.0.1:8000")
     print("=" * 65)
     uvicorn.run(app, host="127.0.0.1", port=8000)
